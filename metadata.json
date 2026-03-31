@@ -1,0 +1,7 @@
+{
+  "name": "MetszetMester",
+  "description": "Interaktív szövettani oktatóprogram egészségügyi hallgatóknak. Szövetminták felismerése, elemzése és funkcionális bemutatása.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
