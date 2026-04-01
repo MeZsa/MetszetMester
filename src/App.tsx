@@ -82,9 +82,9 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#F8FAFC] overflow-hidden text-primary">
+    <div className="h-screen w-screen flex flex-col bg-[#FBF8F7] overflow-hidden text-primary">
       {/* Top Navigation Bar */}
-      <header className="h-16 border-b border-lab-border flex items-center justify-between px-8 z-50 shrink-0 shadow-sm" style={{ backgroundColor: '#FBF8F7' }}>
+      <header className="h-16 border-b border-lab-border flex items-center justify-between px-8 z-50 shrink-0" style={{ backgroundColor: '#FBF8F7', boxShadow: '0 4px 15px rgba(20, 20, 20, 0.25)' }}>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-white shadow-inner">
             <Microscope size={22} strokeWidth={2.5} />
@@ -109,14 +109,6 @@ export default function App() {
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
         </div>
       </header>
-
-      {/* Disclaimer Banner */}
-      <div className="bg-accent/10 border-b border-accent/20 px-8 py-2 flex items-center justify-center gap-3 z-40">
-        <AlertCircle size={14} className="text-accent" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-accent">
-          Oktatási célú rendszer — Nem klinikai diagnózisra
-        </p>
-      </div>
 
       {/* Main Workbench Area */}
       <main className="flex-1 flex overflow-hidden relative">
@@ -577,7 +569,7 @@ export default function App() {
       </main>
 
       {/* Bottom Rail: History */}
-      <footer className="h-24 bg-white border-t border-lab-border flex items-center px-8 gap-6 z-50 shrink-0">
+      <footer className="h-24 border-t border-lab-border flex items-center px-8 gap-6 z-50 shrink-0" style={{ backgroundColor: '#FBF8F7' }}>
         <div className="flex items-center gap-2 shrink-0">
           <History size={18} className="text-primary/40" />
           <span className="micro-label">History</span>
@@ -610,6 +602,14 @@ export default function App() {
           )}
         </div>
       </footer>
+
+      {/* Disclaimer Banner */}
+      <div className="bg-accent/5 border-t border-accent/10 px-8 py-1.5 flex items-center justify-center gap-3 z-40 shrink-0">
+        <AlertCircle size={12} className="text-accent/60" />
+        <p className="text-[9px] font-bold uppercase tracking-widest text-accent/60">
+          Oktatási célú rendszer — Nem klinikai diagnózisra
+        </p>
+      </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
