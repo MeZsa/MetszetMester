@@ -84,22 +84,24 @@ export default function App() {
   return (
     <div className="h-screen w-screen flex flex-col bg-[#F8FAFC] overflow-hidden text-primary">
       {/* Top Navigation Bar */}
-      <header className="h-16 border-b border-lab-border bg-primary flex items-center justify-between px-8 z-50 shrink-0 shadow-lg">
+      <header className="h-16 border-b border-lab-border flex items-center justify-between px-8 z-50 shrink-0 shadow-sm" style={{ backgroundColor: '#FBF8F7' }}>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-white shadow-inner">
             <Microscope size={22} strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="font-serif text-lg font-bold tracking-tight text-white">MetszetMester</h1>
-            <p className="micro-label text-white/60">Histology Workbench v2.0</p>
+            <h1 className="font-serif text-lg font-bold tracking-tight text-primary">MetszetMester</h1>
+            <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#354B2F' }}>
+              Egészségügyi Szövettani Oktató program
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="h-8 w-[1px] bg-white/10" />
+          <div className="h-8 w-[1px] bg-lab-border" />
           <button 
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg text-sm font-bold hover:bg-success/90 transition-all shadow-md active:scale-95 border border-white/10"
+            className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg text-sm font-bold hover:bg-success/90 transition-all shadow-md active:scale-95 border border-black/5"
           >
             <Upload size={16} />
             Minta betöltése
@@ -612,7 +614,7 @@ export default function App() {
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(9, 45, 167, 0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(66, 133, 244, 0.1); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--lab-teal); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
       `}} />

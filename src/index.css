@@ -2,12 +2,12 @@
 @import "tailwindcss";
 
 :root {
-  --deep-blue: #092DA7;
+  --deep-blue: #4285F4;
   --cool-gray: #1F3D51;
   --white: #FFFFFF;
   --bordeaux: #C74050;
   --emerald: #249E24;
-  --lab-border: rgba(9, 45, 167, 0.1);
+  --lab-border: rgba(66, 133, 244, 0.1);
   --glass-bg: rgba(255, 255, 255, 0.9);
 }
 
