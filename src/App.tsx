@@ -82,16 +82,17 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#FBF8F7] overflow-hidden text-primary">
+    <div className="h-screen w-screen flex flex-col bg-[#E4DEC3] overflow-hidden text-primary">
       {/* Top Navigation Bar */}
-      <header className="h-16 border-b border-lab-border flex items-center justify-between px-8 z-50 shrink-0" style={{ backgroundColor: '#FBF8F7', boxShadow: '0 4px 15px rgba(20, 20, 20, 0.25)' }}>
+      <header className="h-16 border-b border-lab-border flex items-center justify-between px-8 z-50 shrink-0" style={{ backgroundColor: '#E4DEC3', boxShadow: '0 4px 15px rgba(20, 20, 20, 0.25)' }}>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-white shadow-inner">
             <Microscope size={22} strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="font-serif text-lg font-bold tracking-tight text-primary">MetszetMester</h1>
-            <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#354B2F' }}>
+            <h1 className="font-serif text-lg font-bold tracking-tight text-primary leading-none">MetszetMester</h1>
+            <p className="text-[10px] italic text-primary/70 mb-0.5">by Mékli Zsuzsanna</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider leading-tight" style={{ color: '#354B2F' }}>
               Egészségügyi Szövettani Oktató program
             </p>
           </div>
@@ -569,7 +570,7 @@ export default function App() {
       </main>
 
       {/* Bottom Rail: History */}
-      <footer className="h-24 border-t border-lab-border flex items-center px-8 gap-6 z-50 shrink-0" style={{ backgroundColor: '#FBF8F7' }}>
+      <footer className="h-24 border-t border-lab-border flex items-center px-8 gap-6 z-50 shrink-0" style={{ backgroundColor: '#E4DEC3' }}>
         <div className="flex items-center gap-2 shrink-0">
           <History size={18} className="text-primary/40" />
           <span className="micro-label">History</span>
