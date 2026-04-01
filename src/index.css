@@ -2,12 +2,13 @@
 @import "tailwindcss";
 
 :root {
-  --bg-beige: #F8F5F0;
-  --clinical-blue: #2A6AF4;
-  --accent-blue: #2A6AF4;
-  --soft-blue: #E0E7FF;
-  --lab-border: rgba(42, 106, 244, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.85);
+  --deep-blue: #092DA7;
+  --cool-gray: #1F3D51;
+  --white: #FFFFFF;
+  --bordeaux: #C74050;
+  --emerald: #249E24;
+  --lab-border: rgba(9, 45, 167, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.9);
 }
 
 @theme {
@@ -15,27 +16,28 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-serif: "Playfair Display", serif;
 
-  --color-primary: var(--clinical-blue);
-  --color-accent: var(--accent-blue);
-  --color-surface: var(--bg-beige);
+  --color-primary: var(--deep-blue);
+  --color-secondary: var(--cool-gray);
+  --color-accent: var(--bordeaux);
+  --color-success: var(--emerald);
+  --color-surface: var(--white);
   --color-lab-border: var(--lab-border);
-  --color-navy: #000080;
 }
 
 body {
-  background-color: var(--bg-beige);
-  color: var(--clinical-blue);
+  background-color: #F8FAFC;
+  color: var(--deep-blue);
   font-family: var(--font-sans);
   overflow: hidden;
 }
 
 /* Scientific Typography */
 .markdown-body h1 { @apply text-3xl font-serif font-bold mb-6 text-primary tracking-tight border-b border-lab-border pb-2; }
-.markdown-body h2 { @apply text-xl font-serif font-semibold mb-4 text-primary/90 mt-8; }
-.markdown-body p { @apply mb-4 leading-relaxed text-primary/80; }
-.markdown-body strong { @apply font-semibold text-accent; }
-.markdown-body ul { @apply space-y-2 mb-6 list-none pl-0; }
-.markdown-body li { @apply flex items-start gap-2 before:content-['•'] before:text-accent before:font-bold; }
+.markdown-body h2 { @apply text-xl font-serif font-semibold mb-4 text-accent mt-8 flex items-center gap-3 before:content-[''] before:w-1.5 before:h-6 before:bg-accent before:rounded-full; }
+.markdown-body p { @apply mb-5 leading-relaxed text-primary/90 text-[15px]; }
+.markdown-body strong { @apply font-bold text-primary; }
+.markdown-body ul { @apply space-y-3 mb-6 list-none pl-0; }
+.markdown-body li { @apply flex items-start gap-3 text-[14px] text-primary/80 before:content-['→'] before:text-accent before:font-bold before:text-xs before:mt-1; }
 
 /* Workbench Components */
 .workbench-panel {
