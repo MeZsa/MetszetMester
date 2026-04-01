@@ -96,7 +96,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="font-serif text-xl font-bold tracking-tight text-accent">MetszetMester</h1>
-            <p className="text-[10px] uppercase tracking-widest opacity-50 font-mono">Histology Educator</p>
+            <p className="text-[10px] uppercase tracking-widest opacity-50 font-mono">Histology Educator by Mékli Zsuzsanna</p>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ export default function App() {
               className="mt-12 text-center"
             >
               <h2 className="text-4xl md:text-6xl font-serif font-light mb-6 tracking-tight text-accent">
-                Fedezze fel a <span className="italic text-secondary">mikroszkópos</span> világot.
+                Fedezze fel a mikroszkópos világot.
               </h2>
               <p className="text-lg opacity-60 mb-12 max-w-xl mx-auto leading-relaxed">
                 Töltsön fel egy szövettani metszetet, és a MetszetMester segít azonosítani a struktúrákat és megérteni a funkciókat.
