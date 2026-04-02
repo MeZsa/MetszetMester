@@ -31,7 +31,6 @@ body {
   background-color: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  overflow: hidden;
 }
 
 /* Scientific Typography */
