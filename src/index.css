@@ -2,12 +2,12 @@
 @import "tailwindcss";
 
 :root {
-  --deep-blue: #4285F4;
+  --deep-blue: #345571;
   --cool-gray: #1F3D51;
   --white: #FFFFFF;
   --bordeaux: #C74050;
   --emerald: #249E24;
-  --lab-border: rgba(66, 133, 244, 0.1);
+  --lab-border: rgba(52, 85, 113, 0.1);
   --glass-bg: rgba(255, 255, 255, 0.9);
 }
 
@@ -22,18 +22,21 @@
   --color-success: var(--emerald);
   --color-surface: var(--white);
   --color-lab-border: var(--lab-border);
+  --color-bg: #f7f6f9;
+  --color-ink: var(--deep-blue);
+  --color-line: rgba(52, 85, 113, 0.1);
 }
 
 body {
-  background-color: #E4DEC3;
-  color: var(--deep-blue);
+  background-color: var(--color-bg);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   overflow: hidden;
 }
 
 /* Scientific Typography */
 .markdown-body h1 { @apply text-3xl font-serif font-bold mb-6 text-primary tracking-tight border-b border-lab-border pb-2; }
-.markdown-body h2 { @apply text-xl font-serif font-semibold mb-4 text-accent mt-8 flex items-center gap-3 before:content-[''] before:w-1.5 before:h-6 before:bg-accent before:rounded-full; }
+.markdown-body h2 { @apply text-xl font-serif font-semibold mb-4 text-primary mt-8 flex items-center gap-3 before:content-[''] before:w-1.5 before:h-6 before:bg-primary before:rounded-full; }
 .markdown-body p { @apply mb-5 leading-relaxed text-primary/90 text-[15px]; }
 .markdown-body strong { @apply font-bold text-primary; }
 .markdown-body ul { @apply space-y-3 mb-6 list-none pl-0; }
