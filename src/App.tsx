@@ -96,7 +96,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="font-serif text-xl font-bold tracking-tight text-accent">MetszetMester</h1>
-            <p className="text-[10px] uppercase tracking-widest opacity-50 font-mono">Histology Educator <span className="italic normal-case">by Mékli Zsuzsanna</span></p>
+            <p className="text-[8px] uppercase tracking-widest opacity-50 font-mono">Histology Educator <span className="italic normal-case">by Mékli Zsuzsanna</span></p>
           </div>
         </div>
 
