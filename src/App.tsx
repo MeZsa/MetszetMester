@@ -263,7 +263,27 @@ export default function App() {
                   transition={{ delay: 0.2, duration: 0.8 }}
                   className="p-5 bg-gradient-to-br from-primary to-secondary text-white rounded-[2rem] shadow-[0_20px_40px_rgba(31,58,95,0.2)] relative overflow-hidden group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  {/* Continuous Shimmer Effect */}
+                  <motion.div 
+                    animate={{ 
+                      x: ['-200%', '200%'],
+                    }}
+                    transition={{ 
+                      duration: 4, 
+                      repeat: Infinity, 
+                      ease: "easeInOut",
+                      repeatDelay: 0.5
+                    }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg] pointer-events-none"
+                  />
+                  
+                  {/* Ambient Pulse Glow */}
+                  <motion.div
+                    animate={{ opacity: [0, 0.2, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute inset-0 bg-white pointer-events-none"
+                  />
+
                   <ThreeDMicroscope size={48} strokeWidth={1.2} />
                 </motion.div>
                 <div className="space-y-3">
@@ -332,7 +352,20 @@ export default function App() {
               {/* Minimal Header when image is present */}
               <header className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
-                  <div className="p-2 bg-gradient-to-br from-primary to-secondary text-white rounded-xl shadow-lg">
+                  <div className="p-2 bg-gradient-to-br from-primary to-secondary text-white rounded-xl shadow-lg relative overflow-hidden">
+                    {/* Continuous Shimmer Effect */}
+                    <motion.div 
+                      animate={{ 
+                        x: ['-200%', '200%'],
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity, 
+                        ease: "easeInOut",
+                        repeatDelay: 1
+                      }}
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] pointer-events-none"
+                    />
                     <ThreeDMicroscope size={18} strokeWidth={1.5} />
                   </div>
                   <span className="font-serif font-bold text-primary">MetszetMester</span>
@@ -533,14 +566,27 @@ export default function App() {
                           className="absolute inset-0 z-10 pointer-events-none overflow-hidden rounded-[2rem] md:rounded-[3rem]"
                         >
                           <motion.div 
-                            className="absolute left-0 right-0 h-1 bg-secondary shadow-[0_0_20px_rgba(59,110,165,0.6)] z-20"
+                            className="absolute left-0 right-0 h-[2px] z-20 blur-[0.5px]"
+                            style={{
+                              background: 'linear-gradient(90deg, rgba(59,110,165,0) 0%, rgba(59,110,165,0.8) 20%, rgba(99,102,241,0.8) 40%, rgba(168,85,247,0.8) 60%, rgba(236,72,153,0.8) 80%, rgba(59,110,165,0) 100%)',
+                              backgroundSize: '200% 100%',
+                              boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)'
+                            }}
                             animate={{ 
-                              top: ["0%", "100%", "0%"] 
+                              top: ["0%", "100%", "0%"],
+                              backgroundPosition: ["0% 0%", "200% 0%"]
                             }}
                             transition={{ 
-                              duration: 4, 
-                              repeat: Infinity, 
-                              ease: "linear" 
+                              top: {
+                                duration: 10, 
+                                repeat: Infinity, 
+                                ease: "easeInOut" 
+                              },
+                              backgroundPosition: {
+                                duration: 5,
+                                repeat: Infinity,
+                                ease: "linear"
+                              }
                             }}
                           />
                         </motion.div>

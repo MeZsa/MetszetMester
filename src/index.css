@@ -60,6 +60,15 @@
     transform-style: preserve-3d;
     perspective: 1000px;
   }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2.5s infinite linear;
+  }
 }
 
 body {
