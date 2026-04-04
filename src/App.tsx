@@ -14,69 +14,90 @@ const ThreeDMicroscope = ({ size = 24, className = "" }: { size?: number, classN
   <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
     <motion.div
       animate={{ 
-        rotateY: [0, 15, 0, -15, 0],
-        rotateX: [0, -10, 0, 10, 0],
-        y: [0, -4, 0, 4, 0]
+        rotateY: [0, 10, 0, -10, 0],
+        rotateX: [0, -5, 0, 5, 0],
+        y: [0, -2, 0, 2, 0]
       }}
-      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
       className="relative preserve-3d w-full h-full"
     >
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
+      {/* Ground Shadow */}
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3/4 h-2 bg-black/20 blur-md rounded-full" />
+
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.25)]">
         <defs>
-          <linearGradient id="metal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f3f4f6" />
-            <stop offset="50%" stopColor="#9ca3af" />
-            <stop offset="100%" stopColor="#4b5563" />
+          <linearGradient id="chrome-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="30%" stopColor="#e2e8f0" />
+            <stop offset="60%" stopColor="#94a3b8" />
+            <stop offset="100%" stopColor="#475569" />
           </linearGradient>
-          <linearGradient id="lens-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="100%" stopColor="#1e40af" />
+          <linearGradient id="dark-metal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#475569" />
+            <stop offset="100%" stopColor="#0f172a" />
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="blur" />
+          <linearGradient id="base-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f8fafc" />
+            <stop offset="100%" stopColor="#cbd5e1" />
+          </linearGradient>
+          <filter id="glow-light">
+            <feGaussianBlur stdDeviation="1" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
 
-        {/* Base - Heavy and stable */}
-        <path d="M20 85 L80 85 L85 92 L15 92 Z" fill="url(#metal-grad)" stroke="#1f3a5f" strokeWidth="1" />
-        <rect x="25" y="80" width="50" height="5" rx="2" fill="#1f3a5f" />
+        {/* U-Shaped Base */}
+        <path d="M20 85 L80 85 L85 95 L15 95 Z" fill="#1e293b" />
+        <path d="M20 82 L80 82 L82 85 L18 85 Z" fill="url(#base-grad)" />
+        <path d="M20 82 L35 82 L35 95 L20 95 Z" fill="url(#base-grad)" />
+        <path d="M65 82 L80 82 L80 95 L65 95 Z" fill="url(#base-grad)" />
+        
+        {/* Rubber Feet */}
+        <rect x="18" y="94" width="10" height="2" fill="#000" />
+        <rect x="72" y="94" width="10" height="2" fill="#000" />
 
-        {/* Main Pillar/Arm */}
-        <path d="M35 80 L35 40 Q35 25 55 25 L65 25" fill="none" stroke="url(#metal-grad)" strokeWidth="8" strokeLinecap="round" />
-        <path d="M35 80 L35 40 Q35 25 55 25 L65 25" fill="none" stroke="#1f3a5f" strokeWidth="1" strokeLinecap="round" opacity="0.3" />
+        {/* Main Curved Arm - Dark Metal */}
+        <path d="M45 82 L45 65 Q45 35 75 35 L80 35" fill="none" stroke="url(#dark-metal)" strokeWidth="12" strokeLinecap="round" />
+        <path d="M45 82 L45 65 Q45 35 75 35 L80 35" fill="none" stroke="white" strokeWidth="0.5" strokeLinecap="round" opacity="0.1" />
 
-        {/* Stage - Where the slide goes */}
-        <rect x="30" y="60" width="40" height="3" rx="1" fill="#111827" />
-        <path d="M30 63 L70 63 L65 66 L35 66 Z" fill="#1f2937" />
+        {/* Light Source / Condenser (Stacked Disks) */}
+        <rect x="42" y="72" width="16" height="3" rx="1.5" fill="#334155" />
+        <rect x="44" y="75" width="12" height="3" rx="1.5" fill="#1e293b" />
+        <circle cx="50" cy="73.5" r="4" fill="#fbbf24" opacity="0.8" filter="url(#glow-light)" />
 
-        {/* Objective Turret */}
-        <circle cx="60" cy="45" r="8" fill="url(#metal-grad)" stroke="#1f3a5f" strokeWidth="0.5" />
-        {/* Lenses */}
-        <rect x="55" y="50" width="4" height="8" rx="1" fill="#374151" transform="rotate(-15 57 54)" />
-        <rect x="61" y="50" width="4" height="10" rx="1" fill="#4b5563" />
-        <rect x="67" y="50" width="4" height="6" rx="1" fill="#374151" transform="rotate(15 69 53)" />
+        {/* Stage - Black Plate */}
+        <rect x="30" y="58" width="45" height="5" rx="1" fill="#0f172a" />
+        <rect x="35" y="57" width="35" height="1" fill="#334155" />
 
-        {/* Eyepiece / Tube */}
-        <rect x="58" y="15" width="10" height="15" rx="2" fill="url(#metal-grad)" stroke="#1f3a5f" strokeWidth="0.5" transform="rotate(-20 63 22)" />
-        <circle cx="68" cy="12" r="4" fill="url(#lens-grad)" filter="url(#glow)" />
+        {/* Vertical Chrome Tube */}
+        <rect x="58" y="25" width="14" height="40" rx="1" fill="url(#chrome-grad)" />
+        <rect x="59" y="25" width="3" height="40" fill="white" opacity="0.4" />
+
+        {/* Revolving Nosepiece (Turret) */}
+        <ellipse cx="65" cy="50" rx="12" ry="5" fill="url(#dark-metal)" stroke="#000" strokeWidth="0.5" />
+        {/* Objectives - Chrome */}
+        <rect x="58" y="54" width="5" height="12" rx="1" fill="url(#chrome-grad)" transform="rotate(-15 60 54)" />
+        <rect x="65" y="55" width="5" height="15" rx="1" fill="url(#chrome-grad)" />
+        <rect x="72" y="54" width="5" height="10" rx="1" fill="url(#chrome-grad)" transform="rotate(15 74 54)" />
+
+        {/* Eyepiece / Head */}
+        <rect x="61" y="8" width="10" height="20" rx="1" fill="url(#chrome-grad)" transform="rotate(-5 66 18)" />
+        <rect x="60" y="5" width="12" height="5" rx="1.5" fill="#0f172a" />
         
         {/* Adjustment Knobs */}
-        <circle cx="35" cy="70" r="4" fill="#374151" stroke="#111827" strokeWidth="0.5" />
-        <circle cx="35" cy="70" r="2" fill="#4b5563" />
-        
-        {/* Light Source (Condenser) */}
-        <rect x="45" y="75" width="10" height="4" rx="1" fill="#fbbf24" opacity="0.8" filter="url(#glow)" />
+        <circle cx="45" cy="75" r="6" fill="#1e293b" stroke="#000" strokeWidth="0.5" />
+        <circle cx="45" cy="75" r="4" fill="url(#chrome-grad)" opacity="0.4" />
+        <circle cx="45" cy="75" r="2" fill="#000" />
       </svg>
 
-      {/* Dynamic Shine Overlay */}
+      {/* Metallic Shine Animation */}
       <motion.div 
         animate={{ 
-          opacity: [0.1, 0.4, 0.1],
-          x: [-20, 20, -20],
+          x: ['-100%', '200%'],
+          opacity: [0, 0.2, 0]
         }}
-        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] pointer-events-none"
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", repeatDelay: 3 }}
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg] pointer-events-none"
       />
     </motion.div>
   </div>
