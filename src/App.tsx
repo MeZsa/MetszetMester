@@ -10,95 +10,70 @@ import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
 
-const ThreeDMicroscope = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
+const ThreeDMicroscope = ({ size = 24, className = "", strokeWidth = 1.2 }: { size?: number, className?: string, strokeWidth?: number }) => (
   <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
     <motion.div
       animate={{ 
-        rotateY: [0, 10, 0, -10, 0],
-        rotateX: [0, -5, 0, 5, 0],
+        rotateY: [0, 15, 0, -15, 0],
+        rotateX: [0, -8, 0, 8, 0],
         y: [0, -2, 0, 2, 0]
       }}
-      transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-      className="relative preserve-3d w-full h-full"
+      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      className="relative preserve-3d"
     >
-      {/* Ground Shadow */}
-      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3/4 h-2 bg-black/20 blur-md rounded-full" />
-
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.25)]">
-        <defs>
-          <linearGradient id="chrome-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="30%" stopColor="#e2e8f0" />
-            <stop offset="60%" stopColor="#94a3b8" />
-            <stop offset="100%" stopColor="#475569" />
-          </linearGradient>
-          <linearGradient id="dark-metal" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#475569" />
-            <stop offset="100%" stopColor="#0f172a" />
-          </linearGradient>
-          <linearGradient id="base-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f8fafc" />
-            <stop offset="100%" stopColor="#cbd5e1" />
-          </linearGradient>
-          <filter id="glow-light">
-            <feGaussianBlur stdDeviation="1" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-
-        {/* U-Shaped Base */}
-        <path d="M20 85 L80 85 L85 95 L15 95 Z" fill="#1e293b" />
-        <path d="M20 82 L80 82 L82 85 L18 85 Z" fill="url(#base-grad)" />
-        <path d="M20 82 L35 82 L35 95 L20 95 Z" fill="url(#base-grad)" />
-        <path d="M65 82 L80 82 L80 95 L65 95 Z" fill="url(#base-grad)" />
-        
-        {/* Rubber Feet */}
-        <rect x="18" y="94" width="10" height="2" fill="#000" />
-        <rect x="72" y="94" width="10" height="2" fill="#000" />
-
-        {/* Main Curved Arm - Dark Metal */}
-        <path d="M45 82 L45 65 Q45 35 75 35 L80 35" fill="none" stroke="url(#dark-metal)" strokeWidth="12" strokeLinecap="round" />
-        <path d="M45 82 L45 65 Q45 35 75 35 L80 35" fill="none" stroke="white" strokeWidth="0.5" strokeLinecap="round" opacity="0.1" />
-
-        {/* Light Source / Condenser (Stacked Disks) */}
-        <rect x="42" y="72" width="16" height="3" rx="1.5" fill="#334155" />
-        <rect x="44" y="75" width="12" height="3" rx="1.5" fill="#1e293b" />
-        <circle cx="50" cy="73.5" r="4" fill="#fbbf24" opacity="0.8" filter="url(#glow-light)" />
-
-        {/* Stage - Black Plate */}
-        <rect x="30" y="58" width="45" height="5" rx="1" fill="#0f172a" />
-        <rect x="35" y="57" width="35" height="1" fill="#334155" />
-
-        {/* Vertical Chrome Tube */}
-        <rect x="58" y="25" width="14" height="40" rx="1" fill="url(#chrome-grad)" />
-        <rect x="59" y="25" width="3" height="40" fill="white" opacity="0.4" />
-
-        {/* Revolving Nosepiece (Turret) */}
-        <ellipse cx="65" cy="50" rx="12" ry="5" fill="url(#dark-metal)" stroke="#000" strokeWidth="0.5" />
-        {/* Objectives - Chrome */}
-        <rect x="58" y="54" width="5" height="12" rx="1" fill="url(#chrome-grad)" transform="rotate(-15 60 54)" />
-        <rect x="65" y="55" width="5" height="15" rx="1" fill="url(#chrome-grad)" />
-        <rect x="72" y="54" width="5" height="10" rx="1" fill="url(#chrome-grad)" transform="rotate(15 74 54)" />
-
-        {/* Eyepiece / Head */}
-        <rect x="61" y="8" width="10" height="20" rx="1" fill="url(#chrome-grad)" transform="rotate(-5 66 18)" />
-        <rect x="60" y="5" width="12" height="5" rx="1.5" fill="#0f172a" />
-        
-        {/* Adjustment Knobs */}
-        <circle cx="45" cy="75" r="6" fill="#1e293b" stroke="#000" strokeWidth="0.5" />
-        <circle cx="45" cy="75" r="4" fill="url(#chrome-grad)" opacity="0.4" />
-        <circle cx="45" cy="75" r="2" fill="#000" />
-      </svg>
-
-      {/* Metallic Shine Animation */}
-      <motion.div 
-        animate={{ 
-          x: ['-100%', '200%'],
-          opacity: [0, 0.2, 0]
-        }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", repeatDelay: 3 }}
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg] pointer-events-none"
+      {/* Deep Shadow */}
+      <Microscope 
+        size={size} 
+        strokeWidth={strokeWidth} 
+        className="absolute top-[6px] left-[4px] text-black/30 blur-[3px] opacity-40" 
       />
+      
+      {/* 3D Stacked Layers for Depth */}
+      {[1, 2, 3].map((offset) => (
+        <Microscope 
+          key={offset}
+          size={size} 
+          strokeWidth={strokeWidth} 
+          className="absolute text-primary/10" 
+          style={{ transform: `translateZ(${-offset * 2}px) translate(${offset}px, ${offset}px)` }}
+        />
+      ))}
+
+      {/* Inner Glow / Ambient Light */}
+      <motion.div
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0"
+      >
+        <Microscope 
+          size={size} 
+          strokeWidth={strokeWidth + 0.8} 
+          className="text-secondary/40 blur-[6px]" 
+        />
+      </motion.div>
+
+      {/* Main Front Layer */}
+      <div className="relative">
+        <Microscope 
+          size={size} 
+          strokeWidth={strokeWidth} 
+          className="relative text-white drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" 
+        />
+        
+        {/* Specular Highlight (The "Lens" Shine) */}
+        <motion.div 
+          animate={{ 
+            opacity: [0.2, 0.6, 0.2],
+            x: [-10, 10, -10],
+            y: [-10, 10, -10]
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-1/4 w-1/3 h-1/3 bg-white/40 blur-[8px] rounded-full pointer-events-none"
+        />
+      </div>
+
+      {/* Bottom Reflection / Base Glow */}
+      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-secondary/20 blur-[4px] rounded-full" />
     </motion.div>
   </div>
 );
@@ -286,9 +261,10 @@ export default function App() {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
-                  className="relative group"
+                  className="p-5 bg-gradient-to-br from-primary to-secondary text-white rounded-[2rem] shadow-[0_20px_40px_rgba(31,58,95,0.2)] relative overflow-hidden group"
                 >
-                  <ThreeDMicroscope size={160} />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <ThreeDMicroscope size={48} strokeWidth={1.2} />
                 </motion.div>
                 <div className="space-y-3">
                   <motion.h1 
@@ -356,8 +332,8 @@ export default function App() {
               {/* Minimal Header when image is present */}
               <header className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
-                  <div className="relative">
-                    <ThreeDMicroscope size={24} />
+                  <div className="p-2 bg-gradient-to-br from-primary to-secondary text-white rounded-xl shadow-lg">
+                    <ThreeDMicroscope size={18} strokeWidth={1.5} />
                   </div>
                   <span className="font-serif font-bold text-primary">MetszetMester</span>
                 </div>
@@ -591,7 +567,9 @@ export default function App() {
                           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
                           transition={{ duration: 3, repeat: Infinity }}
                         >
-                          <ThreeDMicroscope size={64} />
+                          <div className="p-4 bg-gradient-to-br from-primary to-secondary rounded-3xl shadow-2xl">
+                            <ThreeDMicroscope size={40} strokeWidth={1.2} />
+                          </div>
                         </motion.div>
                       </div>
                       
@@ -678,10 +656,14 @@ export default function App() {
                           )}
                         >
                           <div className="flex items-center gap-5">
-                            <div className="p-4 rounded-2xl">
+                            <div className={cn(
+                              "p-4 rounded-2xl transition-colors",
+                              activeTab === 'structures' ? "bg-white/10" : "bg-primary/5"
+                            )}>
                               <ThreeDMicroscope 
                                 size={28} 
-                                className={cn(activeTab === 'structures' ? "" : "[&_svg]:opacity-40")} 
+                                strokeWidth={1.2} 
+                                className={cn(activeTab === 'structures' ? "" : "[&_svg]:text-primary/40")} 
                               />
                             </div>
                             <div>
