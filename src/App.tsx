@@ -58,6 +58,7 @@ export default function App() {
   const [result, setResult] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<HistologyAnnotation[]>([]);
   const [hoveredAnnotationIndex, setHoveredAnnotationIndex] = useState<number | null>(null);
+  const [selectedAnnotationIndex, setSelectedAnnotationIndex] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [history, setHistory] = useState<AnalysisResult[]>([]);
@@ -77,6 +78,7 @@ export default function App() {
   };
 
   const focusAnnotation = (ann: HistologyAnnotation, idx: number) => {
+    setSelectedAnnotationIndex(idx);
     setHoveredAnnotationIndex(idx);
     setZoom(2.5);
     
@@ -84,18 +86,10 @@ export default function App() {
     const centerX = (ann.xmin + ann.xmax) / 2;
     const centerY = (ann.ymin + ann.ymax) / 2;
     
-    // Convert to pixel-ish offset (this is an approximation since we don't know container size exactly, 
-    // but framer-motion drag will handle the relative movement)
-    // We want to move the center of the image (500, 500) to the center of the annotation
-    const targetX = (500 - centerX) * 0.8; // Scale factor for the pan
+    const targetX = (500 - centerX) * 0.8; 
     const targetY = (500 - centerY) * 0.8;
     
     setPan({ x: targetX, y: targetY });
-    
-    // Scroll to top on mobile if needed, but on desktop it's sticky
-    if (window.innerWidth < 1024) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -134,34 +128,7 @@ export default function App() {
     setIsAnalyzing(true);
     setAnnotations([]);
     try {
-     const response = await fetch("/api/analyze", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    image: base64,
-    mimeType
-  })
-});
-
-if (!response.ok) {
-  throw new Error("A szerver nem tudta feldolgozni a kérést.");
-}
-
-const data = await response.json();
-
-setResult(data.report);
-setAnnotations(data.annotations);
-
-const newResult: AnalysisResult = {
-  id: Math.random().toString(36).substr(2, 9),
-  image: base64,
-  text: data.report,
-  annotations: data.annotations,
-  timestamp: new Date(),
-};
-
-setHistory(prev => [newResult, ...prev]);
-
+      const response = await analyzeHistologyImage(base64, mimeType);
       setResult(response.report);
       setAnnotations(response.annotations);
       const newResult: AnalysisResult = {
@@ -189,6 +156,7 @@ setHistory(prev => [newResult, ...prev]);
     setImage(null);
     setResult(null);
     setAnnotations([]);
+    setSelectedAnnotationIndex(null);
     setZoom(1);
     setPan({ x: 0, y: 0 });
     setError(null);
@@ -384,23 +352,29 @@ setHistory(prev => [newResult, ...prev]);
                                 )}
                               />
                               {(hoveredAnnotationIndex === idx || zoom > 2) && (
-                                <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                <motion.g initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                                   <rect 
-                                    x={ann.xmin} 
-                                    y={ann.ymin - (35 / zoom)} 
-                                    width={120 / zoom} 
-                                    height={30 / zoom} 
-                                    rx={4 / zoom} 
-                                    className="fill-secondary shadow-lg"
+                                    x={((ann.xmin + ann.xmax) / 2) - ((ann.label.length * 8 + 24) / (2 * zoom))} 
+                                    y={ann.ymin - (45 / zoom)} 
+                                    width={(ann.label.length * 8 + 24) / zoom} 
+                                    height={32 / zoom} 
+                                    rx={16 / zoom} 
+                                    className="fill-secondary shadow-2xl"
                                   />
                                   <text 
-                                    x={ann.xmin + (10 / zoom)} 
-                                    y={ann.ymin - (15 / zoom)} 
-                                    className="fill-white font-bold font-sans"
-                                    style={{ fontSize: `${14 / zoom}px` }}
+                                    x={(ann.xmin + ann.xmax) / 2} 
+                                    y={ann.ymin - (24 / zoom)} 
+                                    textAnchor="middle"
+                                    className="fill-white font-bold font-sans select-none"
+                                    style={{ fontSize: `${13 / zoom}px` }}
                                   >
                                     {ann.label}
                                   </text>
+                                  {/* Small pointer triangle */}
+                                  <path 
+                                    d={`M ${(ann.xmin + ann.xmax) / 2 - (6 / zoom)} ${ann.ymin - (14 / zoom)} L ${(ann.xmin + ann.xmax) / 2} ${ann.ymin - (4 / zoom)} L ${(ann.xmin + ann.xmax) / 2 + (6 / zoom)} ${ann.ymin - (14 / zoom)} Z`}
+                                    className="fill-secondary"
+                                  />
                                 </motion.g>
                               )}
                             </motion.g>
@@ -547,48 +521,135 @@ setHistory(prev => [newResult, ...prev]);
                       <div className="markdown-body">
                         <Markdown>{result}</Markdown>
                       </div>
-
-                      {/* Interactive Structure List */}
-                      {annotations.length > 0 && (
-                        <div className="mt-12 space-y-6">
-                          <h4 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
-                            <Info size={18} className="text-secondary" />
-                            Azonosított struktúrák
-                          </h4>
-                          <div className="grid grid-cols-1 gap-4">
-                            {annotations.map((ann, idx) => (
-                              <motion.div
-                                key={idx}
-                                id={`ann-card-${idx}`}
-                                onMouseEnter={() => setHoveredAnnotationIndex(idx)}
-                                onMouseLeave={() => setHoveredAnnotationIndex(null)}
-                                onClick={() => focusAnnotation(ann, idx)}
-                                className={cn(
-                                  "p-4 rounded-2xl border transition-all duration-300 cursor-pointer",
-                                  hoveredAnnotationIndex === idx 
-                                    ? "bg-secondary/10 border-secondary/30 translate-x-2" 
-                                    : "bg-primary/5 border-primary/5"
-                                )}
-                              >
-                                <div className="flex items-center gap-3 mb-1">
-                                  <div className={cn(
-                                    "w-2 h-2 rounded-full",
-                                    hoveredAnnotationIndex === idx ? "bg-secondary" : "bg-primary/30"
-                                  )} />
-                                  <span className="font-bold text-primary">{ann.label}</span>
-                                </div>
-                                <p className="text-sm text-primary/60 pl-5 leading-relaxed">
-                                  {ann.description}
-                                </p>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </motion.div>
                   ) : null}
                 </div>
               </div>
+
+              {/* Dedicated Focus Section for Identified Structures */}
+              {annotations.length > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="pt-20 border-t border-line"
+                >
+                  <div className="mb-12">
+                    <h4 className="font-serif text-3xl font-bold text-primary flex items-center gap-4">
+                      <div className="p-3 bg-secondary/10 text-secondary rounded-2xl">
+                        <Info size={24} />
+                      </div>
+                      Azonosított struktúrák
+                    </h4>
+                    <p className="text-sm text-primary/40 mt-2 ml-16 font-mono uppercase tracking-widest">Detailed Morphological Identification</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                    {/* List of Descriptions */}
+                    <div className="space-y-6">
+                      {annotations.map((ann, idx) => (
+                        <motion.div
+                          key={idx}
+                          id={`ann-card-${idx}`}
+                          onMouseEnter={() => setHoveredAnnotationIndex(idx)}
+                          onMouseLeave={() => setHoveredAnnotationIndex(null)}
+                          onClick={() => focusAnnotation(ann, idx)}
+                          className={cn(
+                            "p-6 rounded-[2.5rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
+                            selectedAnnotationIndex === idx 
+                              ? "bg-secondary/5 border-secondary/30 shadow-lg translate-x-4" 
+                              : "bg-surface border-line hover:border-primary/20"
+                          )}
+                        >
+                          {selectedAnnotationIndex === idx && (
+                            <motion.div 
+                              layoutId="active-indicator"
+                              className="absolute left-0 top-0 bottom-0 w-1.5 bg-secondary"
+                            />
+                          )}
+                          <div className="flex items-start gap-4">
+                            <div className={cn(
+                              "mt-1.5 w-3 h-3 rounded-full transition-colors duration-500",
+                              selectedAnnotationIndex === idx ? "bg-secondary" : "bg-primary/10 group-hover:bg-primary/30"
+                            )} />
+                            <div className="space-y-2">
+                              <span className={cn(
+                                "text-xl font-serif font-bold transition-colors",
+                                selectedAnnotationIndex === idx ? "text-secondary" : "text-primary"
+                              )}>
+                                {ann.label}
+                              </span>
+                              <p className="text-sm text-primary/60 leading-relaxed">
+                                {ann.description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex justify-end">
+                            <div className={cn(
+                              "text-[10px] font-mono uppercase tracking-widest flex items-center gap-2 transition-opacity",
+                              selectedAnnotationIndex === idx ? "opacity-100 text-secondary" : "opacity-0"
+                            )}>
+                              Fókuszálva <ChevronRight size={12} />
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Sticky Zoomed Preview */}
+                    <div className="lg:sticky lg:top-12 aspect-square rounded-[4rem] overflow-hidden bg-surface border border-line shadow-2xl relative group">
+                      <AnimatePresence mode="wait">
+                        <motion.div 
+                          key={selectedAnnotationIndex ?? 'none'}
+                          initial={{ opacity: 0, scale: 1.1 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{ duration: 0.5 }}
+                          className="w-full h-full relative"
+                        >
+                          <motion.div 
+                            className="w-full h-full"
+                            animate={{ 
+                              scale: selectedAnnotationIndex !== null ? 3 : 1,
+                              x: selectedAnnotationIndex !== null ? (500 - (annotations[selectedAnnotationIndex].xmin + annotations[selectedAnnotationIndex].xmax) / 2) * 1.2 : 0,
+                              y: selectedAnnotationIndex !== null ? (500 - (annotations[selectedAnnotationIndex].ymin + annotations[selectedAnnotationIndex].ymax) / 2) * 1.2 : 0
+                            }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          >
+                            <img 
+                              src={image} 
+                              alt="Focus View" 
+                              className="w-full h-full object-contain"
+                              referrerPolicy="no-referrer"
+                            />
+                          </motion.div>
+
+                          {/* Overlay Label */}
+                          {selectedAnnotationIndex !== null && (
+                            <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-12 bg-gradient-to-t from-black/60 to-transparent">
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-1"
+                              >
+                                <p className="text-[10px] font-mono uppercase tracking-[0.4em] text-white/60">Selected Structure</p>
+                                <h5 className="text-3xl font-serif font-bold text-white">{annotations[selectedAnnotationIndex].label}</h5>
+                              </motion.div>
+                            </div>
+                          )}
+
+                          {selectedAnnotationIndex === null && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 bg-primary/5">
+                              <Microscope size={48} className="text-primary/10 mb-4" />
+                              <p className="text-sm font-serif italic text-primary/40">Válasszon egy struktúrát a listából a részletes megtekintéshez</p>
+                            </div>
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
           )}
         </div>
