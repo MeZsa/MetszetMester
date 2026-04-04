@@ -134,7 +134,34 @@ export default function App() {
     setIsAnalyzing(true);
     setAnnotations([]);
     try {
-      const response = await analyzeHistologyImage(base64, mimeType);
+     const response = await fetch("/api/analyze", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    image: base64,
+    mimeType
+  })
+});
+
+if (!response.ok) {
+  throw new Error("A szerver nem tudta feldolgozni a kérést.");
+}
+
+const data = await response.json();
+
+setResult(data.report);
+setAnnotations(data.annotations);
+
+const newResult: AnalysisResult = {
+  id: Math.random().toString(36).substr(2, 9),
+  image: base64,
+  text: data.report,
+  annotations: data.annotations,
+  timestamp: new Date(),
+};
+
+setHistory(prev => [newResult, ...prev]);
+
       setResult(response.report);
       setAnnotations(response.annotations);
       const newResult: AnalysisResult = {
