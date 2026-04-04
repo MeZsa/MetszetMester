@@ -59,14 +59,44 @@ export default function App() {
   const [annotations, setAnnotations] = useState<HistologyAnnotation[]>([]);
   const [hoveredAnnotationIndex, setHoveredAnnotationIndex] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.5, 5));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.5, 1));
-  const resetZoom = () => setZoom(1);
+  const handleZoomOut = () => setZoom(prev => {
+    const newZoom = Math.max(prev - 0.5, 1);
+    if (newZoom === 1) setPan({ x: 0, y: 0 });
+    return newZoom;
+  });
+  const resetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const focusAnnotation = (ann: HistologyAnnotation, idx: number) => {
+    setHoveredAnnotationIndex(idx);
+    setZoom(2.5);
+    
+    // Calculate center of annotation in 0-1000 coordinates
+    const centerX = (ann.xmin + ann.xmax) / 2;
+    const centerY = (ann.ymin + ann.ymax) / 2;
+    
+    // Convert to pixel-ish offset (this is an approximation since we don't know container size exactly, 
+    // but framer-motion drag will handle the relative movement)
+    // We want to move the center of the image (500, 500) to the center of the annotation
+    const targetX = (500 - centerX) * 0.8; // Scale factor for the pan
+    const targetY = (500 - centerY) * 0.8;
+    
+    setPan({ x: targetX, y: targetY });
+    
+    // Scroll to top on mobile if needed, but on desktop it's sticky
+    if (window.innerWidth < 1024) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -133,6 +163,7 @@ export default function App() {
     setResult(null);
     setAnnotations([]);
     setZoom(1);
+    setPan({ x: 0, y: 0 });
     setError(null);
   };
 
@@ -147,7 +178,7 @@ export default function App() {
     <div className="min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col">
       {/* Main Content */}
       <main className="flex-1 px-6 py-12 md:py-20 bg-grid relative flex flex-col items-center justify-center">
-        <div className="max-w-5xl mx-auto w-full">
+        <div className="max-w-7xl mx-auto w-full">
           {!image ? (
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
@@ -246,23 +277,33 @@ export default function App() {
               </header>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-start">
-                {/* Image View */}
+                {/* Image View - Sticky on Desktop */}
                 <motion.div 
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="lg:col-span-5 relative group"
+                  className="lg:col-span-7 lg:sticky lg:top-12 relative group"
                 >
                   <div 
                     ref={containerRef}
                     onWheel={handleWheel}
-                    className="aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden relative bg-surface/50 border border-line"
+                    className="aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden relative bg-surface/50 border border-line shadow-sm"
                   >
                     <motion.div 
                       className="w-full h-full relative cursor-grab active:cursor-grabbing"
-                      animate={{ scale: zoom }}
+                      animate={{ 
+                        scale: zoom,
+                        x: pan.x,
+                        y: pan.y
+                      }}
                       drag={zoom > 1}
                       dragConstraints={containerRef}
+                      onDragEnd={(_, info) => {
+                        setPan(prev => ({
+                          x: prev.x + info.offset.x,
+                          y: prev.y + info.offset.y
+                        }));
+                      }}
                       dragElastic={0.1}
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     >
@@ -285,25 +326,37 @@ export default function App() {
                               key={idx}
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ 
-                                opacity: hoveredAnnotationIndex === null || hoveredAnnotationIndex === idx ? 1 : 0.2,
+                                opacity: hoveredAnnotationIndex === null ? 0.6 : (hoveredAnnotationIndex === idx ? 1 : 0.2),
                                 scale: hoveredAnnotationIndex === idx ? 1.05 : 1
                               }}
                               exit={{ opacity: 0 }}
+                              className="pointer-events-auto cursor-pointer"
+                              onMouseEnter={() => setHoveredAnnotationIndex(idx)}
+                              onMouseLeave={() => setHoveredAnnotationIndex(null)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                focusAnnotation(ann, idx);
+                                // Scroll to the specific annotation card in the list
+                                const element = document.getElementById(`ann-card-${idx}`);
+                                if (element) {
+                                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                              }}
                             >
                               <rect
                                 x={ann.xmin}
                                 y={ann.ymin}
                                 width={ann.xmax - ann.xmin}
                                 height={ann.ymax - ann.ymin}
-                                fill="none"
+                                fill={hoveredAnnotationIndex === idx ? "rgba(59, 110, 165, 0.1)" : "transparent"}
                                 stroke="currentColor"
-                                strokeWidth={2 / zoom}
+                                strokeWidth={hoveredAnnotationIndex === idx ? 3 / zoom : 1.5 / zoom}
                                 className={cn(
-                                  "transition-colors duration-300",
-                                  hoveredAnnotationIndex === idx ? "text-secondary" : "text-primary/20"
+                                  "transition-all duration-300",
+                                  hoveredAnnotationIndex === idx ? "text-secondary" : "text-primary/40"
                                 )}
                               />
-                              {hoveredAnnotationIndex === idx && (
+                              {(hoveredAnnotationIndex === idx || zoom > 2) && (
                                 <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                                   <rect 
                                     x={ann.xmin} 
@@ -311,7 +364,7 @@ export default function App() {
                                     width={120 / zoom} 
                                     height={30 / zoom} 
                                     rx={4 / zoom} 
-                                    className="fill-secondary"
+                                    className="fill-secondary shadow-lg"
                                   />
                                   <text 
                                     x={ann.xmin + (10 / zoom)} 
@@ -397,7 +450,7 @@ export default function App() {
                 </motion.div>
 
                 {/* Analysis View */}
-                <div className="lg:col-span-7 space-y-8">
+                <div className="lg:col-span-5 space-y-8">
                   {isAnalyzing ? (
                     <motion.div 
                       initial={{ opacity: 0, x: 30 }}
@@ -479,10 +532,12 @@ export default function App() {
                             {annotations.map((ann, idx) => (
                               <motion.div
                                 key={idx}
+                                id={`ann-card-${idx}`}
                                 onMouseEnter={() => setHoveredAnnotationIndex(idx)}
                                 onMouseLeave={() => setHoveredAnnotationIndex(null)}
+                                onClick={() => focusAnnotation(ann, idx)}
                                 className={cn(
-                                  "p-4 rounded-2xl border transition-all duration-300 cursor-default",
+                                  "p-4 rounded-2xl border transition-all duration-300 cursor-pointer",
                                   hoveredAnnotationIndex === idx 
                                     ? "bg-secondary/10 border-secondary/30 translate-x-2" 
                                     : "bg-primary/5 border-primary/5"
