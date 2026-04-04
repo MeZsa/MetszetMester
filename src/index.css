@@ -2,13 +2,14 @@
 @import "tailwindcss";
 
 :root {
-  --deep-blue: #345571;
-  --cool-gray: #1F3D51;
-  --white: #FFFFFF;
+  --deep-blue: #1f3a5f;
+  --med-blue: #3b6ea5;
+  --warm-beige: #f6f1e7;
+  --off-white: #fdfcf9;
   --bordeaux: #C74050;
   --emerald: #249E24;
-  --lab-border: rgba(52, 85, 113, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.9);
+  --lab-border: rgba(31, 58, 95, 0.1);
+  --glass-bg: rgba(253, 252, 249, 0.9);
 }
 
 @theme {
@@ -17,19 +18,39 @@
   --font-serif: "Playfair Display", serif;
 
   --color-primary: var(--deep-blue);
-  --color-secondary: var(--cool-gray);
-  --color-accent: var(--bordeaux);
+  --color-secondary: var(--med-blue);
+  --color-accent: var(--deep-blue);
   --color-success: var(--emerald);
-  --color-surface: var(--white);
+  --color-surface: var(--off-white);
   --color-lab-border: var(--lab-border);
-  --color-bg: #f7f6f9;
+  --color-bg: var(--warm-beige);
   --color-ink: var(--deep-blue);
-  --color-line: rgba(52, 85, 113, 0.1);
+  --color-line: rgba(31, 58, 95, 0.1);
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .bg-grid {
+    background-image: radial-gradient(circle at 1px 1px, var(--color-line) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+  
+  .glass-card {
+    @apply bg-surface/40 backdrop-blur-2xl border border-line rounded-[3rem] shadow-[0_20px_80px_rgba(31,58,95,0.03)];
+  }
+
+  .micro-corners::before,
+  .micro-corners::after {
+    content: '';
+    @apply absolute w-4 h-4 border-primary/20 pointer-events-none;
+  }
+  
+  .micro-corners::before { @apply top-6 left-6 border-t-2 border-l-2 rounded-tl-lg; }
+  .micro-corners::after { @apply bottom-6 right-6 border-b-2 border-r-2 rounded-br-lg; }
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-ink);
+  @apply bg-bg text-ink selection:bg-primary/10 selection:text-primary;
   font-family: var(--font-sans);
 }
 
@@ -39,7 +60,7 @@ body {
 .markdown-body p { @apply mb-5 leading-relaxed text-primary/90 text-[15px]; }
 .markdown-body strong { @apply font-bold text-primary; }
 .markdown-body ul { @apply space-y-3 mb-6 list-none pl-0; }
-.markdown-body li { @apply flex items-start gap-3 text-[14px] text-primary/80 before:content-['→'] before:text-accent before:font-bold before:text-xs before:mt-1; }
+.markdown-body li { @apply flex items-start gap-3 text-[14px] text-primary/80 before:content-['→'] before:text-secondary before:font-bold before:text-xs before:mt-1; }
 
 /* Workbench Components */
 .workbench-panel {

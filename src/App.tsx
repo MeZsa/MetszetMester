@@ -17,6 +17,40 @@ interface AnalysisResult {
   timestamp: Date;
 }
 
+const LOADING_MESSAGES = [
+  "Struktúrák azonosítása...",
+  "Sejtmagok detektálása...",
+  "Szöveti mintázatok felismerése...",
+  "Patológiai jelek keresése...",
+  "Adatok összevetése az adatbázissal...",
+  "Részletes jelentés összeállítása..."
+];
+
+function LoadingMessage() {
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.p
+        key={index}
+        initial={{ opacity: 0, y: 5 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -5 }}
+        className="text-[10px] md:text-xs font-mono opacity-40 uppercase tracking-widest"
+      >
+        {LOADING_MESSAGES[index]}
+      </motion.p>
+    </AnimatePresence>
+  );
+}
+
 export default function App() {
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -87,95 +121,45 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-bg text-ink overflow-x-hidden">
-      {/* Sidebar */}
-      <aside className="w-full md:w-80 md:h-screen border-b md:border-r border-line bg-white/50 backdrop-blur-md p-4 md:p-6 flex flex-col gap-6 md:gap-8 shrink-0 sticky top-0 z-50 md:relative">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-accent to-accent/80 text-white rounded-xl shadow-[0_4px_12px_rgba(26,54,93,0.3)]">
-            <Microscope size={24} />
-          </div>
-          <div>
-            <h1 className="font-serif text-xl font-bold tracking-tight text-accent">MetszetMester</h1>
-            <p className="text-[8px] uppercase tracking-widest opacity-50 font-mono">Histology Educator <span className="italic normal-case">by Mékli Zsuzsanna</span></p>
-          </div>
-        </div>
-
-        <nav className="flex flex-row md:flex-col gap-4 overflow-x-auto md:overflow-visible no-scrollbar pb-2 md:pb-0">
-          <div className="hidden md:block text-[11px] font-mono uppercase opacity-50 tracking-wider">Navigáció</div>
-          <button 
-            onClick={clearCurrent}
-            className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-all group whitespace-nowrap"
-          >
-            <div className="p-2 rounded-lg bg-soft-blue text-accent group-hover:scale-110 transition-transform">
-              <Upload size={18} />
-            </div>
-            Új feltöltés
-          </button>
-          <div className="flex items-center gap-3 text-sm font-medium opacity-50 cursor-not-allowed whitespace-nowrap">
-            <div className="p-2 rounded-lg bg-gray-100">
-              <Info size={18} />
-            </div>
-            Tudástár (Hamarosan)
-          </div>
-        </nav>
-
-        <div className="flex-1 overflow-hidden flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="text-[11px] font-mono uppercase opacity-50 tracking-wider">Előzmények</div>
-            <History size={14} className="opacity-30" />
-          </div>
-          <div className="flex flex-row md:flex-col gap-3 overflow-x-auto md:overflow-y-auto no-scrollbar md:custom-scrollbar pb-2 md:pb-0">
-            {history.length === 0 ? (
-              <p className="text-xs italic opacity-40 whitespace-nowrap">Még nincs korábbi elemzés.</p>
-            ) : (
-              history.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => loadFromHistory(item)}
-                  className="w-48 md:w-full group flex items-center gap-3 p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-line text-left shrink-0"
-                >
-                  <img src={item.image} className="w-10 h-10 object-cover rounded-lg border border-line shadow-sm" alt="Miniatűr" referrerPolicy="no-referrer" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">Metszet #{item.id}</p>
-                    <p className="text-[10px] opacity-40 font-mono">{item.timestamp.toLocaleTimeString()}</p>
-                  </div>
-                  <ChevronRight size={14} className="hidden md:block opacity-0 group-hover:opacity-30 transition-opacity" />
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="hidden md:block pt-6 border-t border-line">
-          <div className="p-4 bg-soft-blue/50 rounded-2xl border border-line/50">
-            <p className="text-[10px] leading-relaxed opacity-70 italic">
-              <strong>Figyelem:</strong> Ez a program kizárólag oktatási célokat szolgál. Nem ad orvosi diagnózist.
-            </p>
-          </div>
-        </div>
-      </aside>
-
+    <div className="min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col">
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-12 overflow-y-auto bg-grid relative">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 px-6 py-12 md:py-20 bg-grid relative flex flex-col items-center justify-center">
+        <div className="max-w-5xl mx-auto w-full">
           {!image ? (
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-8 md:mt-12 text-center"
+              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center text-center"
             >
-              <h2 className="text-3xl md:text-6xl font-serif font-light mb-4 md:mb-6 tracking-tight text-primary">
-                Fedezze fel a mikroszkópos világot.
-              </h2>
-              <p className="text-base md:text-lg opacity-60 mb-8 md:mb-12 max-w-xl mx-auto leading-relaxed">
-                Töltsön fel egy szövettani metszetet, és a MetszetMester segít azonosítani a struktúrákat és megérteni a funkciókat.
-              </p>
+              {/* Centered Logo & Title */}
+              <div className="mb-12 md:mb-16 flex flex-col items-center gap-6">
+                <motion.div 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                  className="p-5 bg-gradient-to-br from-primary to-secondary text-white rounded-[2rem] shadow-[0_20px_40px_rgba(31,58,95,0.2)]"
+                >
+                  <Microscope size={48} strokeWidth={1.5} />
+                </motion.div>
+                <div className="space-y-2">
+                  <h1 className="font-serif text-5xl md:text-7xl font-bold tracking-tight text-primary">MetszetMester</h1>
+                  <p className="text-xs md:text-sm uppercase tracking-[0.4em] opacity-40 font-mono font-bold">
+                    Histology Educator <span className="italic normal-case font-medium ml-1">by Mékli Zsuzsanna</span>
+                  </p>
+                </div>
+              </div>
 
+              <h2 className="text-2xl md:text-3xl font-serif font-light mb-12 tracking-tight text-primary/70 max-w-2xl leading-relaxed">
+                Fedezze fel a mikroszkópos világot egy digitális tanársegéd segítségével.
+              </h2>
+
+              {/* Centered Upload Area */}
               <div 
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative glass-card p-8 md:p-16 transition-all hover:shadow-[0_20px_50px_rgba(26,54,93,0.1)] cursor-pointer border-2 border-dashed border-line hover:border-accent/30"
+                className="group relative glass-card w-full max-w-3xl p-12 md:p-20 transition-all hover:shadow-[0_40px_120px_rgba(31,58,95,0.1)] cursor-pointer border-2 border-dashed border-line hover:border-primary/30 micro-corners"
               >
                 <input 
                   type="file" 
@@ -184,94 +168,147 @@ export default function App() {
                   className="hidden" 
                   accept="image/*"
                 />
-                <div className="flex flex-col items-center gap-4 md:gap-6">
-                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl bg-gradient-to-br from-soft-blue to-white flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_10px_20px_rgba(0,0,0,0.05)]">
-                    <Upload size={24} className="md:size-32 text-accent opacity-40 group-hover:opacity-100 transition-opacity" />
+                <div className="flex flex-col items-center gap-8">
+                  <div className="w-20 h-20 md:w-28 md:h-28 rounded-[2rem] bg-gradient-to-br from-warm-beige to-off-white flex items-center justify-center group-hover:scale-110 transition-transform duration-700 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_10px_30px_rgba(0,0,0,0.03)]">
+                    <Upload size={32} className="text-primary opacity-20 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-lg md:text-xl font-medium text-accent">Húzza ide a képet vagy kattintson</p>
-                    <p className="text-xs md:text-sm opacity-40 font-mono">JPG, PNG, TIFF (Max 10MB)</p>
+                  <div className="space-y-2">
+                    <p className="text-xl md:text-2xl font-medium text-primary">Húzza ide a metszetet</p>
+                    <p className="text-xs md:text-sm opacity-30 font-mono tracking-widest uppercase">Vagy kattintson a tallózáshoz</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 md:mt-12 flex flex-wrap justify-center gap-4 md:gap-8 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
-                  <Camera size={14} />
-                  Mobile Ready
-                </div>
-                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
-                  <FileText size={14} />
-                  PDF Export
-                </div>
+              {/* Minimal Footer Info */}
+              <div className="mt-16 md:mt-24 flex gap-12 opacity-20 font-mono text-[10px] uppercase tracking-[0.3em] font-bold">
+                <span className="flex items-center gap-2"><Camera size={14} /> Digital Imaging</span>
+                <span className="flex items-center gap-2"><FileText size={14} /> Academic Analysis</span>
               </div>
             </motion.div>
           ) : (
-            <div className="space-y-8 md:y-12 pb-20">
-              <div className="flex items-center justify-between">
+            <div className="space-y-12 md:space-y-16">
+              {/* Minimal Header when image is present */}
+              <header className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
+                  <div className="p-2 bg-primary text-white rounded-lg">
+                    <Microscope size={18} />
+                  </div>
+                  <span className="font-serif font-bold text-primary">MetszetMester</span>
+                </div>
                 <button 
                   onClick={clearCurrent}
-                  className="flex items-center gap-2 text-xs md:text-sm font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity text-accent"
+                  className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface border border-line text-[10px] font-mono uppercase tracking-widest text-primary hover:bg-primary hover:text-white transition-all duration-500 shadow-sm"
                 >
-                  <X size={16} />
-                  Vissza
+                  <Upload size={12} />
+                  Új feltöltés
                 </button>
-                <div className="flex gap-2">
-                  <button className="p-2 rounded-full hover:bg-white border border-transparent hover:border-line transition-all opacity-40 hover:opacity-100 text-accent">
-                    <Info size={20} />
-                  </button>
-                </div>
-              </div>
+              </header>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-start">
                 {/* Image View */}
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   className="relative group"
                 >
-                  <div className="aspect-square rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-line bg-white shadow-2xl p-2 md:p-4">
+                  <div className="aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden border border-line bg-surface shadow-2xl p-3 md:p-6 relative micro-corners">
                     <img 
                       src={image} 
                       alt="Metszet" 
-                      className="w-full h-full object-contain rounded-[1.5rem] md:rounded-[2rem]"
+                      className="w-full h-full object-contain rounded-[2rem] md:rounded-[3rem]"
                       referrerPolicy="no-referrer"
                     />
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 md:-bottom-4 md:-right-4 bg-gradient-to-br from-accent to-accent/90 text-white p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-2xl flex items-center gap-2 md:gap-3">
-                    <div className="p-1.5 md:p-2 bg-white/20 rounded-lg md:rounded-xl">
-                      <Microscope size={16} className="md:size-20" />
-                    </div>
-                    <span className="text-[10px] md:text-xs font-mono uppercase tracking-widest font-bold">Aktív elemzés</span>
+                    
+                    {/* Scanning Animation Overlay */}
+                    <AnimatePresence>
+                      {isAnalyzing && (
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="absolute inset-0 z-10 pointer-events-none overflow-hidden rounded-[2rem] md:rounded-[3rem]"
+                        >
+                          <motion.div 
+                            className="absolute left-0 right-0 h-1 bg-secondary shadow-[0_0_20px_rgba(59,110,165,0.6)] z-20"
+                            animate={{ 
+                              top: ["0%", "100%", "0%"] 
+                            }}
+                            transition={{ 
+                              duration: 4, 
+                              repeat: Infinity, 
+                              ease: "linear" 
+                            }}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
 
                 {/* Analysis View */}
-                <div className="space-y-6 md:space-y-8">
+                <div className="space-y-8">
                   {isAnalyzing ? (
-                    <div className="flex flex-col items-center justify-center py-12 md:py-20 gap-4 md:gap-6 text-center glass-card">
-                      <Loader2 size={32} className="md:size-48 animate-spin text-accent opacity-20" />
-                      <div className="space-y-2">
-                        <p className="text-lg md:text-xl font-serif italic text-accent">Metszet elemzése...</p>
-                        <p className="text-[10px] font-mono opacity-40 uppercase tracking-widest">Struktúrák azonosítása</p>
+                    <motion.div 
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex flex-col items-center justify-center py-20 md:py-32 gap-8 text-center glass-card relative overflow-hidden micro-corners"
+                    >
+                      <div className="relative">
+                        <Loader2 size={64} className="md:size-80 animate-spin text-secondary opacity-5" />
+                        <motion.div 
+                          className="absolute inset-0 flex items-center justify-center"
+                          animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        >
+                          <Microscope size={40} className="text-secondary" />
+                        </motion.div>
                       </div>
-                    </div>
+                      
+                      <div className="space-y-4 z-10">
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-2xl md:text-3xl font-serif italic text-primary"
+                        >
+                          A struktúrák elemzése...
+                        </motion.p>
+                        <div className="flex flex-col gap-2">
+                          <LoadingMessage />
+                        </div>
+                      </div>
+                      
+                      {/* Progress bar simulation */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-line">
+                        <motion.div 
+                          className="h-full bg-secondary"
+                          initial={{ width: "0%" }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 15, ease: "easeInOut" }}
+                        />
+                      </div>
+                    </motion.div>
                   ) : error ? (
-                    <div className="p-6 md:p-8 bg-red-50 border border-red-100 rounded-2xl md:rounded-3xl text-red-600 shadow-sm">
-                      <h3 className="font-bold mb-2">Hiba történt</h3>
-                      <p className="text-sm opacity-80">{error}</p>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-8 md:p-12 bg-red-50/50 border border-red-100 rounded-[2.5rem] text-red-600 shadow-sm"
+                    >
+                      <h3 className="font-serif text-xl font-bold mb-3">Hiba történt</h3>
+                      <p className="text-sm opacity-70 leading-relaxed mb-6">{error}</p>
                       <button 
                         onClick={() => startAnalysis(image, 'image/jpeg')}
-                        className="mt-4 text-xs font-bold uppercase tracking-widest underline"
+                        className="px-6 py-3 bg-red-600 text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-red-700 transition-colors"
                       >
                         Próbálja újra
                       </button>
-                    </div>
+                    </motion.div>
                   ) : result ? (
                     <motion.div 
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="markdown-body glass-card p-6 md:p-10"
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      className="markdown-body glass-card p-8 md:p-12 micro-corners"
                     >
                       <Markdown>{result}</Markdown>
                     </motion.div>
@@ -282,27 +319,6 @@ export default function App() {
           )}
         </div>
       </main>
-
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .bg-grid {
-          background-image: radial-gradient(var(--line) 1px, transparent 1px);
-          background-size: 40px 40px;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: var(--line);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: var(--accent);
-        }
-      `}} />
     </div>
   );
 }
