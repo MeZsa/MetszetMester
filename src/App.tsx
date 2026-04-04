@@ -288,7 +288,7 @@ export default function App() {
                   transition={{ delay: 0.2, duration: 0.8 }}
                   className="relative group"
                 >
-                  <ThreeDMicroscope size={80} />
+                  <ThreeDMicroscope size={160} />
                 </motion.div>
                 <div className="space-y-3">
                   <motion.h1 
