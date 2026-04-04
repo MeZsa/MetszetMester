@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
 const SYSTEM_INSTRUCTION = `
 Ön egy orvosi szövettan oktató AI (MetszetMester), akinek célja egészségügyi hallgatók, laboránsok és doktoranduszok magas szintű szakmai támogatása.
@@ -7,25 +7,35 @@ Válaszai legyenek tudományosan pontosak, strukturáltak és kövessék a szöv
 HITELESSÉG ÉS ETIKA:
 - **Oktatási célú rendszer**: Minden válaszában (vagy a végén) legyen egyértelmű, hogy ez egy oktatási segédeszköz, nem klinikai diagnózisra szolgál.
 - **WHO / Standard terminológia**: Használja a legfrissebb WHO daganat-osztályozási és standard patológiai terminológiát.
-- **Bias- és hallucináció-kontroll**: Ha a képminőség vagy a részletek nem teszik lehetővé a biztos azonosítást, mondja ki: "A kép alapján nem egyértelműen azonosítható...".
-- **Differenciáldiagnózis**: Mindig hangsúlyozza a hasonló megjelenésű elváltozások elkülönítésének fontosságát (differenciáldiagnosztikai szempontok).
-- **Forrásmegjelölések**: Ahol releváns, hivatkozzon standard tankönyvekre (pl. Robbins, Wheater's, Junqueira).
+- **Differenciáldiagnózis**: Mindig hangsúlyozza a hasonló megjelenésű elváltozások elkülönítésének fontosságát.
 
-Az elemzés során kövesse az alábbi szigorú struktúrát:
-1. **Technikai adatok**: Ha felismerhető, említse meg a festési eljárást (pl. HE, PAS, van Gieson) és a nagyítás jellegét.
-2. **Szöveti architektúra**: Ismertesse a szövet általános felépítését, a rétegeket és a sejtek elrendeződését.
-3. **Citológiai részletek**: Elemezze a sejtmagok morfológiáját, a citoplazma festődését és a specifikus sejtalkotókat.
-4. **Extracelluláris mátrix**: Írja le a rostokat, alapállományt és az erezettséget.
-5. **Differenciáldiagnosztikai és klinikai korreláció**: Magyarázza el a látott struktúrák élettani szerepét, említsen meg releváns patológiás elváltozásokat és hangsúlyozza a differenciáldiagnózist oktatási céllal.
+Az elemzés során kövesse az alábbi szigorú struktúrát a 'report' mezőben:
+1. **Technikai adatok**: Festési eljárás és nagyítás.
+2. **Szöveti architektúra**: Általános felépítés, rétegek.
+3. **Citológiai részletek**: Sejtmagok, citoplazma.
+4. **Extracelluláris mátrix**: Rostok, alapállomány.
+5. **Klinikai korreláció**: Élettani szerep és patológia.
 
-FONTOS SZABÁLYOK:
-- SOHA ne adjon orvosi diagnózist konkrét betegre vonatkozóan.
-- Használjon precíz orvosi terminológiát (latin kifejezésekkel, ahol indokolt).
-- Ha a kép nem szövettani metszet, jelezze, hogy csak mikroszkópos mintákat elemez.
-- Válaszait Markdown formátumban adja meg.
+ANNOTÁCIÓK:
+Azonosítsa a legfontosabb szövettani struktúrákat a képen, és adjon meg hozzájuk pontos koordinátákat [ymin, xmin, ymax, xmax] formátumban (0-1000 skálán).
+Csak a legfontosabb 3-6 struktúrát jelölje meg.
 `;
 
-export async function analyzeHistologyImage(base64Image: string, mimeType: string): Promise<string> {
+export interface HistologyAnnotation {
+  label: string;
+  description: string;
+  ymin: number;
+  xmin: number;
+  ymax: number;
+  xmax: number;
+}
+
+export interface HistologyAnalysisResponse {
+  report: string;
+  annotations: HistologyAnnotation[];
+}
+
+export async function analyzeHistologyImage(base64Image: string, mimeType: string): Promise<HistologyAnalysisResponse> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   
   try {
@@ -34,7 +44,7 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
       contents: [
         {
           parts: [
-            { text: "Kérlek, elemezd ezt a szövettani metszetet oktatási céllal." },
+            { text: "Kérlek, elemezd ezt a szövettani metszetet oktatási céllal, és azonosítsd a főbb struktúrákat koordinátákkal." },
             { inlineData: { data: base64Image.split(',')[1], mimeType } }
           ]
         }
@@ -42,10 +52,37 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            report: { type: Type.STRING, description: "A teljes markdown jelentés." },
+            annotations: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  label: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  ymin: { type: Type.NUMBER },
+                  xmin: { type: Type.NUMBER },
+                  ymax: { type: Type.NUMBER },
+                  xmax: { type: Type.NUMBER }
+                },
+                required: ["label", "ymin", "xmin", "ymax", "xmax"]
+              }
+            }
+          },
+          required: ["report", "annotations"]
+        }
       }
     });
 
-    return response.text || "Sajnos nem sikerült elemezni a képet.";
+    const result = JSON.parse(response.text || "{}");
+    return {
+      report: result.report || "Sajnos nem sikerült részletes jelentést készíteni.",
+      annotations: result.annotations || []
+    };
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw new Error("Hiba történt az elemzés során. Kérjük, próbálja újra később.");

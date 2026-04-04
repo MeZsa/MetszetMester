@@ -47,6 +47,14 @@
   
   .micro-corners::before { @apply top-6 left-6 border-t-2 border-l-2 rounded-tl-lg; }
   .micro-corners::after { @apply bottom-6 right-6 border-b-2 border-r-2 rounded-br-lg; }
+
+  .elegant-title {
+    @apply font-serif font-bold tracking-tight text-primary;
+    background: linear-gradient(to bottom right, var(--deep-blue), var(--med-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(31, 58, 95, 0.1));
+  }
 }
 
 body {
@@ -55,12 +63,39 @@ body {
 }
 
 /* Scientific Typography */
-.markdown-body h1 { @apply text-3xl font-serif font-bold mb-6 text-primary tracking-tight border-b border-lab-border pb-2; }
-.markdown-body h2 { @apply text-xl font-serif font-semibold mb-4 text-primary mt-8 flex items-center gap-3 before:content-[''] before:w-1.5 before:h-6 before:bg-primary before:rounded-full; }
-.markdown-body p { @apply mb-5 leading-relaxed text-primary/90 text-[15px]; }
-.markdown-body strong { @apply font-bold text-primary; }
-.markdown-body ul { @apply space-y-3 mb-6 list-none pl-0; }
-.markdown-body li { @apply flex items-start gap-3 text-[14px] text-primary/80 before:content-['→'] before:text-secondary before:font-bold before:text-xs before:mt-1; }
+.markdown-body {
+  @apply font-sans text-primary/90;
+}
+.markdown-body h1 { 
+  @apply text-3xl font-serif font-bold mb-8 text-primary tracking-tight border-b-2 border-primary/10 pb-4 flex items-center gap-3; 
+}
+.markdown-body h2 { 
+  @apply text-xl font-serif font-bold mb-4 text-primary mt-10 flex items-center gap-3;
+}
+.markdown-body h2::before {
+  content: '';
+  @apply w-2 h-2 bg-secondary rounded-full;
+}
+.markdown-body p { 
+  @apply mb-6 leading-relaxed text-[16px] font-light; 
+}
+.markdown-body strong { 
+  @apply font-bold text-primary; 
+}
+.markdown-body ul { 
+  @apply space-y-4 mb-8 list-none pl-0; 
+}
+.markdown-body li { 
+  @apply flex items-start gap-4 text-[15px] p-4 bg-primary/5 rounded-2xl border border-primary/5 transition-all hover:bg-primary/10; 
+}
+.markdown-body li::before {
+  content: '•';
+  @apply text-secondary font-bold text-lg leading-none mt-0.5;
+}
+
+.report-header {
+  @apply flex items-center justify-between mb-8 pb-6 border-b border-line;
+}
 
 /* Workbench Components */
 .workbench-panel {

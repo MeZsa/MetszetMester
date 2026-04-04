@@ -4,16 +4,17 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, Microscope, FileText, Info, Loader2, ChevronRight, X, Camera, History } from 'lucide-react';
+import { Upload, Microscope, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
-import { analyzeHistologyImage } from './services/gemini';
+import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
 
 interface AnalysisResult {
   id: string;
   image: string;
   text: string;
+  annotations: HistologyAnnotation[];
   timestamp: Date;
 }
 
@@ -55,9 +56,25 @@ export default function App() {
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [annotations, setAnnotations] = useState<HistologyAnnotation[]>([]);
+  const [hoveredAnnotationIndex, setHoveredAnnotationIndex] = useState<number | null>(null);
+  const [zoom, setZoom] = useState(1);
   const [history, setHistory] = useState<AnalysisResult[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.5, 5));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.5, 1));
+  const resetZoom = () => setZoom(1);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) handleZoomIn();
+      else handleZoomOut();
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,13 +102,16 @@ export default function App() {
 
   const startAnalysis = async (base64: string, mimeType: string) => {
     setIsAnalyzing(true);
+    setAnnotations([]);
     try {
-      const analysisText = await analyzeHistologyImage(base64, mimeType);
-      setResult(analysisText);
+      const response = await analyzeHistologyImage(base64, mimeType);
+      setResult(response.report);
+      setAnnotations(response.annotations);
       const newResult: AnalysisResult = {
         id: Math.random().toString(36).substr(2, 9),
         image: base64,
-        text: analysisText,
+        text: response.report,
+        annotations: response.annotations,
         timestamp: new Date(),
       };
       setHistory(prev => [newResult, ...prev]);
@@ -111,12 +131,15 @@ export default function App() {
   const clearCurrent = () => {
     setImage(null);
     setResult(null);
+    setAnnotations([]);
+    setZoom(1);
     setError(null);
   };
 
   const loadFromHistory = (item: AnalysisResult) => {
     setImage(item.image);
     setResult(item.text);
+    setAnnotations(item.annotations);
     setError(null);
   };
 
@@ -142,11 +165,29 @@ export default function App() {
                 >
                   <Microscope size={48} strokeWidth={1.5} />
                 </motion.div>
-                <div className="space-y-2">
-                  <h1 className="font-serif text-5xl md:text-7xl font-bold tracking-tight text-primary">MetszetMester</h1>
-                  <p className="text-xs md:text-sm uppercase tracking-[0.4em] opacity-40 font-mono font-bold">
-                    Histology Educator <span className="italic normal-case font-medium ml-1">by Mékli Zsuzsanna</span>
-                  </p>
+                <div className="space-y-3">
+                  <motion.h1 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 1 }}
+                    className="elegant-title text-6xl md:text-8xl"
+                  >
+                    MetszetMester
+                  </motion.h1>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 1 }}
+                    className="flex flex-col items-center gap-1"
+                  >
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.5em] opacity-40 font-mono font-bold text-primary">
+                      Histology Educator
+                    </p>
+                    <div className="h-px w-12 bg-primary/20 my-1" />
+                    <p className="text-[9px] md:text-[10px] opacity-30 font-serif italic text-primary">
+                      by Mékli Zsuzsanna
+                    </p>
+                  </motion.div>
                 </div>
               </div>
 
@@ -159,7 +200,7 @@ export default function App() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={onDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative glass-card w-full max-w-3xl p-12 md:p-20 transition-all hover:shadow-[0_40px_120px_rgba(31,58,95,0.1)] cursor-pointer border-2 border-dashed border-line hover:border-primary/30 micro-corners"
+                className="group relative w-full max-w-3xl p-12 md:p-20 transition-all cursor-pointer border-2 border-dashed border-primary/10 hover:border-primary/30 rounded-[3rem]"
               >
                 <input 
                   type="file" 
@@ -204,21 +245,130 @@ export default function App() {
                 </button>
               </header>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-start">
                 {/* Image View */}
                 <motion.div 
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative group"
+                  className="lg:col-span-5 relative group"
                 >
-                  <div className="aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden border border-line bg-surface shadow-2xl p-3 md:p-6 relative micro-corners">
-                    <img 
-                      src={image} 
-                      alt="Metszet" 
-                      className="w-full h-full object-contain rounded-[2rem] md:rounded-[3rem]"
-                      referrerPolicy="no-referrer"
-                    />
+                  <div 
+                    ref={containerRef}
+                    onWheel={handleWheel}
+                    className="aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden relative bg-surface/50 border border-line"
+                  >
+                    <motion.div 
+                      className="w-full h-full relative cursor-grab active:cursor-grabbing"
+                      animate={{ scale: zoom }}
+                      drag={zoom > 1}
+                      dragConstraints={containerRef}
+                      dragElastic={0.1}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    >
+                      <img 
+                        src={image} 
+                        alt="Metszet" 
+                        className="w-full h-full object-contain rounded-[2rem] md:rounded-[3rem] pointer-events-none"
+                        referrerPolicy="no-referrer"
+                      />
+
+                      {/* Interactive Annotations Overlay */}
+                      <svg 
+                        className="absolute inset-0 w-full h-full pointer-events-none z-20"
+                        viewBox="0 0 1000 1000"
+                        preserveAspectRatio="none"
+                      >
+                        <AnimatePresence>
+                          {annotations.map((ann, idx) => (
+                            <motion.g
+                              key={idx}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ 
+                                opacity: hoveredAnnotationIndex === null || hoveredAnnotationIndex === idx ? 1 : 0.2,
+                                scale: hoveredAnnotationIndex === idx ? 1.05 : 1
+                              }}
+                              exit={{ opacity: 0 }}
+                            >
+                              <rect
+                                x={ann.xmin}
+                                y={ann.ymin}
+                                width={ann.xmax - ann.xmin}
+                                height={ann.ymax - ann.ymin}
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2 / zoom}
+                                className={cn(
+                                  "transition-colors duration-300",
+                                  hoveredAnnotationIndex === idx ? "text-secondary" : "text-primary/20"
+                                )}
+                              />
+                              {hoveredAnnotationIndex === idx && (
+                                <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                  <rect 
+                                    x={ann.xmin} 
+                                    y={ann.ymin - (35 / zoom)} 
+                                    width={120 / zoom} 
+                                    height={30 / zoom} 
+                                    rx={4 / zoom} 
+                                    className="fill-secondary"
+                                  />
+                                  <text 
+                                    x={ann.xmin + (10 / zoom)} 
+                                    y={ann.ymin - (15 / zoom)} 
+                                    className="fill-white font-bold font-sans"
+                                    style={{ fontSize: `${14 / zoom}px` }}
+                                  >
+                                    {ann.label}
+                                  </text>
+                                </motion.g>
+                              )}
+                            </motion.g>
+                          ))}
+                        </AnimatePresence>
+                      </svg>
+                    </motion.div>
+                    
+                    {/* Zoom Controls Overlay */}
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-white/90 backdrop-blur-md rounded-full border border-line shadow-lg z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      <button 
+                        onClick={handleZoomOut}
+                        className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                        title="Kicsinyítés"
+                      >
+                        <ZoomOut size={16} />
+                      </button>
+                      <div className="h-4 w-px bg-line mx-1" />
+                      <span className="text-[10px] font-mono font-bold text-primary min-w-[3ch] text-center">
+                        {Math.round(zoom * 100)}%
+                      </span>
+                      <div className="h-4 w-px bg-line mx-1" />
+                      <button 
+                        onClick={handleZoomIn}
+                        className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                        title="Nagyítás"
+                      >
+                        <ZoomIn size={16} />
+                      </button>
+                      <button 
+                        onClick={resetZoom}
+                        className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors ml-1"
+                        title="Alaphelyzet"
+                      >
+                        <Maximize size={16} />
+                      </button>
+                    </div>
+
+                    {/* Sample Metadata Overlay */}
+                    <div className="absolute top-10 left-10 flex flex-col gap-1 pointer-events-none z-30">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Sample ID</span>
+                      <span className="text-xs font-mono font-bold text-primary/60">#HISTO-{Math.floor(Math.random() * 10000)}</span>
+                    </div>
+
+                    <div className="absolute bottom-10 right-10 flex flex-col items-end gap-1 pointer-events-none z-30">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Magnification</span>
+                      <span className="text-xs font-mono font-bold text-secondary">{zoom > 1 ? `${zoom}x Digital` : 'Standard View'}</span>
+                    </div>
                     
                     {/* Scanning Animation Overlay */}
                     <AnimatePresence>
@@ -247,12 +397,12 @@ export default function App() {
                 </motion.div>
 
                 {/* Analysis View */}
-                <div className="space-y-8">
+                <div className="lg:col-span-7 space-y-8">
                   {isAnalyzing ? (
                     <motion.div 
                       initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex flex-col items-center justify-center py-20 md:py-32 gap-8 text-center glass-card relative overflow-hidden micro-corners"
+                      className="flex flex-col items-center justify-center py-20 md:py-32 gap-8 text-center relative overflow-hidden"
                     >
                       <div className="relative">
                         <Loader2 size={64} className="md:size-80 animate-spin text-secondary opacity-5" />
@@ -308,9 +458,51 @@ export default function App() {
                       initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                      className="markdown-body glass-card p-8 md:p-12 micro-corners"
+                      className="p-4 md:p-0 relative overflow-hidden"
                     >
-                      <Markdown>{result}</Markdown>
+                      <div className="mb-8 border-b border-line pb-4">
+                        <h3 className="font-serif text-2xl font-bold text-primary">Elemzési Jelentés</h3>
+                        <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histological Analysis</p>
+                      </div>
+                      <div className="markdown-body">
+                        <Markdown>{result}</Markdown>
+                      </div>
+
+                      {/* Interactive Structure List */}
+                      {annotations.length > 0 && (
+                        <div className="mt-12 space-y-6">
+                          <h4 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
+                            <Info size={18} className="text-secondary" />
+                            Azonosított struktúrák
+                          </h4>
+                          <div className="grid grid-cols-1 gap-4">
+                            {annotations.map((ann, idx) => (
+                              <motion.div
+                                key={idx}
+                                onMouseEnter={() => setHoveredAnnotationIndex(idx)}
+                                onMouseLeave={() => setHoveredAnnotationIndex(null)}
+                                className={cn(
+                                  "p-4 rounded-2xl border transition-all duration-300 cursor-default",
+                                  hoveredAnnotationIndex === idx 
+                                    ? "bg-secondary/10 border-secondary/30 translate-x-2" 
+                                    : "bg-primary/5 border-primary/5"
+                                )}
+                              >
+                                <div className="flex items-center gap-3 mb-1">
+                                  <div className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    hoveredAnnotationIndex === idx ? "bg-secondary" : "bg-primary/30"
+                                  )} />
+                                  <span className="font-bold text-primary">{ann.label}</span>
+                                </div>
+                                <p className="text-sm text-primary/60 pl-5 leading-relaxed">
+                                  {ann.description}
+                                </p>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </motion.div>
                   ) : null}
                 </div>
