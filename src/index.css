@@ -55,6 +55,11 @@
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 2px 4px rgba(31, 58, 95, 0.1));
   }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
 }
 
 body {

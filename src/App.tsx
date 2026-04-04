@@ -10,6 +10,78 @@ import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
 
+const ThreeDMicroscope = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
+  <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
+    <motion.div
+      animate={{ 
+        rotateY: [0, 15, 0, -15, 0],
+        rotateX: [0, -10, 0, 10, 0],
+        y: [0, -4, 0, 4, 0]
+      }}
+      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      className="relative preserve-3d w-full h-full"
+    >
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
+        <defs>
+          <linearGradient id="metal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f3f4f6" />
+            <stop offset="50%" stopColor="#9ca3af" />
+            <stop offset="100%" stopColor="#4b5563" />
+          </linearGradient>
+          <linearGradient id="lens-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#60a5fa" />
+            <stop offset="100%" stopColor="#1e40af" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        {/* Base - Heavy and stable */}
+        <path d="M20 85 L80 85 L85 92 L15 92 Z" fill="url(#metal-grad)" stroke="#1f3a5f" strokeWidth="1" />
+        <rect x="25" y="80" width="50" height="5" rx="2" fill="#1f3a5f" />
+
+        {/* Main Pillar/Arm */}
+        <path d="M35 80 L35 40 Q35 25 55 25 L65 25" fill="none" stroke="url(#metal-grad)" strokeWidth="8" strokeLinecap="round" />
+        <path d="M35 80 L35 40 Q35 25 55 25 L65 25" fill="none" stroke="#1f3a5f" strokeWidth="1" strokeLinecap="round" opacity="0.3" />
+
+        {/* Stage - Where the slide goes */}
+        <rect x="30" y="60" width="40" height="3" rx="1" fill="#111827" />
+        <path d="M30 63 L70 63 L65 66 L35 66 Z" fill="#1f2937" />
+
+        {/* Objective Turret */}
+        <circle cx="60" cy="45" r="8" fill="url(#metal-grad)" stroke="#1f3a5f" strokeWidth="0.5" />
+        {/* Lenses */}
+        <rect x="55" y="50" width="4" height="8" rx="1" fill="#374151" transform="rotate(-15 57 54)" />
+        <rect x="61" y="50" width="4" height="10" rx="1" fill="#4b5563" />
+        <rect x="67" y="50" width="4" height="6" rx="1" fill="#374151" transform="rotate(15 69 53)" />
+
+        {/* Eyepiece / Tube */}
+        <rect x="58" y="15" width="10" height="15" rx="2" fill="url(#metal-grad)" stroke="#1f3a5f" strokeWidth="0.5" transform="rotate(-20 63 22)" />
+        <circle cx="68" cy="12" r="4" fill="url(#lens-grad)" filter="url(#glow)" />
+        
+        {/* Adjustment Knobs */}
+        <circle cx="35" cy="70" r="4" fill="#374151" stroke="#111827" strokeWidth="0.5" />
+        <circle cx="35" cy="70" r="2" fill="#4b5563" />
+        
+        {/* Light Source (Condenser) */}
+        <rect x="45" y="75" width="10" height="4" rx="1" fill="#fbbf24" opacity="0.8" filter="url(#glow)" />
+      </svg>
+
+      {/* Dynamic Shine Overlay */}
+      <motion.div 
+        animate={{ 
+          opacity: [0.1, 0.4, 0.1],
+          x: [-20, 20, -20],
+        }}
+        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] pointer-events-none"
+      />
+    </motion.div>
+  </div>
+);
+
 interface AnalysisResult {
   id: string;
   image: string;
@@ -193,9 +265,9 @@ export default function App() {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
-                  className="p-5 bg-gradient-to-br from-primary to-secondary text-white rounded-[2rem] shadow-[0_20px_40px_rgba(31,58,95,0.2)]"
+                  className="relative group"
                 >
-                  <Microscope size={48} strokeWidth={1.5} />
+                  <ThreeDMicroscope size={80} />
                 </motion.div>
                 <div className="space-y-3">
                   <motion.h1 
@@ -263,8 +335,8 @@ export default function App() {
               {/* Minimal Header when image is present */}
               <header className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
-                  <div className="p-2 bg-primary text-white rounded-lg">
-                    <Microscope size={18} />
+                  <div className="relative">
+                    <ThreeDMicroscope size={24} />
                   </div>
                   <span className="font-serif font-bold text-primary">MetszetMester</span>
                 </div>
@@ -498,7 +570,7 @@ export default function App() {
                           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
                           transition={{ duration: 3, repeat: Infinity }}
                         >
-                          <Microscope size={40} className="text-secondary" />
+                          <ThreeDMicroscope size={64} />
                         </motion.div>
                       </div>
                       
@@ -585,11 +657,11 @@ export default function App() {
                           )}
                         >
                           <div className="flex items-center gap-5">
-                            <div className={cn(
-                              "p-4 rounded-2xl transition-colors",
-                              activeTab === 'structures' ? "bg-white/10" : "bg-primary/5"
-                            )}>
-                              <Microscope size={28} />
+                            <div className="p-4 rounded-2xl">
+                              <ThreeDMicroscope 
+                                size={28} 
+                                className={cn(activeTab === 'structures' ? "" : "[&_svg]:opacity-40")} 
+                              />
                             </div>
                             <div>
                               <span className="block text-[10px] font-mono uppercase tracking-widest opacity-60 mb-1">Morfológia</span>
@@ -640,7 +712,7 @@ export default function App() {
                             </div>
 
                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                              {/* List of Descriptions */}
+                              {/* List of Descriptions with Micro-Crops */}
                               <div className="space-y-4">
                                 {annotations.map((ann, idx) => (
                                   <motion.div
@@ -649,24 +721,50 @@ export default function App() {
                                     onMouseLeave={() => setHoveredAnnotationIndex(null)}
                                     onClick={() => focusAnnotation(ann, idx)}
                                     className={cn(
-                                      "p-5 rounded-[2rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
+                                      "p-4 rounded-[2rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
                                       selectedAnnotationIndex === idx 
                                         ? "bg-secondary/5 border-secondary/30 shadow-md translate-x-2" 
                                         : "bg-surface border-line hover:border-primary/20"
                                     )}
                                   >
-                                    <div className="flex items-start gap-4">
+                                    <div className="flex items-center gap-5">
+                                      {/* Micro-Crop Preview */}
                                       <div className={cn(
-                                        "mt-1.5 w-2.5 h-2.5 rounded-full transition-colors duration-500",
-                                        selectedAnnotationIndex === idx ? "bg-secondary" : "bg-primary/10 group-hover:bg-primary/30"
-                                      )} />
-                                      <div className="space-y-1">
-                                        <span className={cn(
-                                          "text-lg font-serif font-bold transition-colors",
-                                          selectedAnnotationIndex === idx ? "text-secondary" : "text-primary"
-                                        )}>
-                                          {ann.label}
-                                        </span>
+                                        "w-20 h-20 rounded-2xl overflow-hidden border transition-all duration-500 bg-black flex-shrink-0 relative",
+                                        selectedAnnotationIndex === idx ? "border-secondary ring-4 ring-secondary/10" : "border-line"
+                                      )}>
+                                        <div 
+                                          className="absolute inset-0 opacity-80 group-hover:opacity-100 transition-opacity"
+                                          style={{
+                                            backgroundImage: `url(${image})`,
+                                            backgroundSize: '800%', // 8x zoom for thumbnail
+                                            backgroundPosition: `${(((ann.xmin + ann.xmax) / 2000) * 8 - 0.5) / 7 * 100}% ${(((ann.ymin + ann.ymax) / 2000) * 8 - 0.5) / 7 * 100}%`,
+                                            backgroundRepeat: 'no-repeat'
+                                          }}
+                                        />
+                                        {selectedAnnotationIndex === idx && (
+                                          <motion.div 
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="absolute inset-0 border-2 border-secondary/50 rounded-2xl"
+                                          />
+                                        )}
+                                      </div>
+
+                                      <div className="space-y-1 flex-1">
+                                        <div className="flex items-center justify-between">
+                                          <span className={cn(
+                                            "text-lg font-serif font-bold transition-colors",
+                                            selectedAnnotationIndex === idx ? "text-secondary" : "text-primary"
+                                          )}>
+                                            {ann.label}
+                                          </span>
+                                          {selectedAnnotationIndex === idx && (
+                                            <div className="px-2 py-0.5 bg-secondary/10 text-secondary text-[8px] font-mono uppercase tracking-widest rounded-full">
+                                              Fókuszban
+                                            </div>
+                                          )}
+                                        </div>
                                         <p className="text-xs text-primary/60 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
                                           {ann.description}
                                         </p>
@@ -676,7 +774,7 @@ export default function App() {
                                 ))}
                               </div>
 
-                              {/* Sticky Zoomed Preview */}
+                              {/* Sticky Zoomed Preview with Precision Overlay */}
                               <div className="xl:sticky xl:top-12 aspect-square rounded-[3rem] overflow-hidden bg-surface border border-line shadow-xl relative group">
                                 <AnimatePresence mode="wait">
                                   <motion.div 
@@ -704,17 +802,31 @@ export default function App() {
                                       />
                                     </motion.div>
 
+                                    {/* Precision Crosshair Overlay */}
                                     {selectedAnnotationIndex !== null && (
-                                      <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-8 bg-gradient-to-t from-black/60 to-transparent">
-                                        <motion.div
-                                          initial={{ opacity: 0, y: 20 }}
-                                          animate={{ opacity: 1, y: 0 }}
-                                          className="space-y-1"
-                                        >
-                                          <span className="text-[10px] font-mono text-white/60 uppercase tracking-widest">Selected Structure</span>
-                                          <h5 className="text-xl font-serif font-bold text-white">{annotations[selectedAnnotationIndex].label}</h5>
-                                        </motion.div>
-                                      </div>
+                                      <>
+                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                          <div className="relative w-24 h-24">
+                                            <div className="absolute top-1/2 left-0 right-0 h-px bg-secondary/30" />
+                                            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-secondary/30" />
+                                            <div className="absolute inset-0 border border-secondary/20 rounded-full animate-pulse" />
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-8 bg-gradient-to-t from-black/60 to-transparent">
+                                          <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="space-y-1"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-2 h-2 bg-secondary rounded-full animate-ping" />
+                                              <span className="text-[10px] font-mono text-white/60 uppercase tracking-widest">Precision Lock</span>
+                                            </div>
+                                            <h5 className="text-xl font-serif font-bold text-white">{annotations[selectedAnnotationIndex].label}</h5>
+                                          </motion.div>
+                                        </div>
+                                      </>
                                     )}
                                   </motion.div>
                                 </AnimatePresence>
