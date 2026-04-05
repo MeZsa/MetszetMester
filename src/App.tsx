@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
@@ -27,20 +27,20 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
       >
         <svg 
           viewBox="0 0 100 100" 
-          className="w-full h-full drop-shadow-[0_15px_35px_rgba(31,58,95,0.3)]"
+          className="w-full h-full drop-shadow-[0_15px_35px_var(--shadow-color)]"
           fill="none" 
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             <radialGradient id="glassGradient" cx="30%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="white" stopOpacity="0.6" />
-              <stop offset="40%" stopColor="#f0f9ff" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.3" />
+              <stop offset="0%" stopColor="var(--color-surface)" stopOpacity="0.6" />
+              <stop offset="40%" stopColor="var(--color-surface)" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity="0.3" />
             </radialGradient>
             
             <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="white" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--color-secondary)" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity="0" />
             </radialGradient>
 
             <linearGradient id="rimLight" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -228,6 +228,18 @@ function LoadingMessage() {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('metszetmester-theme');
+      return (saved as 'light' | 'dark') || 'light';
+    }
+    return 'light';
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('metszetmester-theme', theme);
+  }, [theme]);
+
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -385,25 +397,47 @@ export default function App() {
     
     if (isCorrect) setQuizScore(prev => prev + 1);
     
-    setUserAnswers(prev => [...prev, answerIndex]);
-    setQuizFeedback(isCorrect ? 'Helyes válasz!' : `Helytelen. A helyes válasz: ${currentQuestion.options[currentQuestion.correctAnswerIndex]}`);
+    setUserAnswers(prev => {
+      const newAnswers = [...prev];
+      newAnswers[currentQuestionIndex] = answerIndex;
+      return newAnswers;
+    });
+    setQuizFeedback(isCorrect ? 'Helyes válasz!' : 'Helytelen válasz.');
     
     if (currentQuestion.annotationRef !== undefined && annotations[currentQuestion.annotationRef]) {
       focusAnnotation(annotations[currentQuestion.annotationRef], currentQuestion.annotationRef);
     }
+  };
 
-    setTimeout(() => {
-      setQuizFeedback(null);
-      if (currentQuestionIndex < quizQuestions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-      } else {
-        setQuizFinished(true);
-      }
-    }, 4000);
+  const nextQuestion = () => {
+    setQuizFeedback(null);
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      setQuizFinished(true);
+    }
+  };
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   return (
-    <div className="min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col">
+    <div className={cn(
+      "min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col transition-colors duration-500",
+      theme === 'dark' && "dark"
+    )}>
+      {/* Theme Toggle Button */}
+      <div className="fixed top-6 right-6 z-[100]">
+        <button
+          onClick={toggleTheme}
+          className="p-3 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:scale-110 active:scale-95 transition-all"
+          title={theme === 'light' ? 'Sötét mód' : 'Világos mód'}
+        >
+          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+        </button>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 px-6 py-12 md:py-20 relative flex flex-col items-center justify-center">
         <div className="max-w-7xl mx-auto w-full">
@@ -651,7 +685,7 @@ export default function App() {
                     </motion.div>
                     
                     {/* Zoom Controls Overlay */}
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-white/90 backdrop-blur-md rounded-full border border-line shadow-lg z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-surface/90 backdrop-blur-md rounded-full border border-line shadow-lg z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                       <button 
                         onClick={handleZoomOut}
                         className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
@@ -1063,10 +1097,10 @@ export default function App() {
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
-                                        className="pt-6 border-t border-line"
+                                        className="pt-6 border-t border-line space-y-6"
                                       >
                                         <div className="flex gap-4 p-6 bg-primary/5 rounded-2xl">
-                                          <div className="p-2 bg-white rounded-lg shadow-sm h-fit">
+                                          <div className="p-2 bg-surface rounded-lg shadow-sm h-fit">
                                             <Info size={20} className="text-primary" />
                                           </div>
                                           <div className="space-y-2">
@@ -1075,6 +1109,16 @@ export default function App() {
                                               {quizQuestions[currentQuestionIndex].explanation}
                                             </p>
                                           </div>
+                                        </div>
+
+                                        <div className="flex justify-end">
+                                          <button
+                                            onClick={nextQuestion}
+                                            className="flex items-center gap-2 px-8 py-4 bg-secondary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-secondary/90 transition-all shadow-lg hover:shadow-secondary/20"
+                                          >
+                                            {currentQuestionIndex < quizQuestions.length - 1 ? 'Következő kérdés' : 'Eredmények megtekintése'}
+                                            <ChevronRight size={16} />
+                                          </button>
                                         </div>
                                       </motion.div>
                                     )}

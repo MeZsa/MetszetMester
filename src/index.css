@@ -2,20 +2,46 @@
 @import "tailwindcss";
 
 :root {
-  --deep-blue: #e2e8f0; /* Slate 200 - used for text/ink */
-  --med-blue: #60a5fa;  /* Blue 400 - used for accents */
-  --warm-beige: #020617; /* Slate 950 - main background */
-  --off-white: #0f172a; /* Slate 900 - cards/surface */
-  --bordeaux: #ef4444;
-  --emerald: #10b981;
+  --deep-blue: #1f3a5f;
+  --med-blue: #3b6ea5;
+  --warm-beige: #f6f1e7;
+  --off-white: #fdfcf9;
+  --bordeaux: #C74050;
+  --emerald: #249E24;
+  --lab-border: rgba(31, 58, 95, 0.1);
+  --glass-bg: rgba(253, 252, 249, 0.9);
+
+  /* Default Theme (Light) */
+  --color-primary: var(--deep-blue);
+  --color-secondary: var(--med-blue);
+  --color-accent: var(--deep-blue);
+  --color-success: var(--emerald);
+  --color-surface: var(--off-white);
+  --color-lab-border: var(--lab-border);
+  --color-bg: var(--warm-beige);
+  --color-ink: var(--deep-blue);
+  --color-line: rgba(31, 58, 95, 0.1);
+  --shadow-color: rgba(31, 58, 95, 0.3);
+}
+
+.dark {
+  --deep-blue: #e2e8f0; /* Light text */
+  --med-blue: #3b82f6; /* Brighter primary blue */
+  --warm-beige: #020617; /* Very dark background */
+  --off-white: #0f172a; /* Dark surface */
   --lab-border: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(15, 23, 42, 0.8);
-  
-  /* Internal semantic names for clarity */
-  --brand-blue: #1f3a5f; /* Original deep blue for specific UI elements if needed */
-  --ink: #f1f5f9;
-  --bg-dark: #020617;
-  --surface-dark: #0f172a;
+  --glass-bg: rgba(2, 6, 23, 0.8);
+  --shadow-color: rgba(0, 0, 0, 0.8);
+
+  --color-primary: #3b82f6; /* Blue 500 */
+  --color-secondary: #60a5fa; /* Blue 400 */
+  --color-accent: #3b82f6;
+  --color-success: #22c55e;
+  --color-surface: var(--off-white);
+  --color-lab-border: var(--lab-border);
+  --color-bg: var(--warm-beige);
+  --color-ink: var(--deep-blue);
+  --color-line: rgba(255, 255, 255, 0.1);
 }
 
 @theme {
@@ -23,15 +49,15 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-serif: "Playfair Display", serif;
 
-  --color-primary: var(--med-blue);
+  --color-primary: var(--deep-blue);
   --color-secondary: var(--med-blue);
-  --color-accent: var(--med-blue);
+  --color-accent: var(--deep-blue);
   --color-success: var(--emerald);
   --color-surface: var(--off-white);
   --color-lab-border: var(--lab-border);
   --color-bg: var(--warm-beige);
-  --color-ink: var(--ink);
-  --color-line: rgba(255, 255, 255, 0.05);
+  --color-ink: var(--deep-blue);
+  --color-line: rgba(31, 58, 95, 0.1);
 }
 
 /* Custom Utilities */
@@ -42,7 +68,7 @@
   }
   
   .glass-card {
-    @apply bg-surface/40 backdrop-blur-2xl border border-line rounded-[3rem] shadow-[0_20px_80px_rgba(31,58,95,0.03)];
+    @apply bg-surface/40 backdrop-blur-2xl border border-line rounded-[3rem] shadow-[0_20px_80px_var(--shadow-color)];
   }
 
   .micro-corners::before,
@@ -59,7 +85,7 @@
     background: linear-gradient(to bottom right, var(--deep-blue), var(--med-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 4px rgba(31, 58, 95, 0.1));
+    filter: drop-shadow(0 2px 4px var(--shadow-color));
   }
 
   .preserve-3d {
@@ -78,7 +104,7 @@
 }
 
 body {
-  @apply bg-bg text-ink selection:bg-primary/10 selection:text-primary;
+  @apply bg-bg text-ink selection:bg-primary/10 selection:text-primary transition-colors duration-500;
   font-family: var(--font-sans);
 }
 
@@ -119,7 +145,7 @@ body {
 
 /* Workbench Components */
 .workbench-panel {
-  @apply bg-surface/80 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl;
+  @apply bg-surface/80 backdrop-blur-xl border border-line rounded-2xl shadow-xl;
 }
 
 .micro-label {
