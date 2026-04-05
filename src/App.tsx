@@ -52,9 +52,6 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
         <circle cx="50" cy="50" r="48" stroke="url(#ringGradient)" strokeWidth="1" opacity="0.2" />
         <circle cx="50" cy="50" r="44" stroke="url(#ringGradient)" strokeWidth="3" />
         
-        {/* Inner Glass Lens Effect */}
-        <circle cx="50" cy="50" r="40" fill="url(#cellGlow)" />
-        
         {/* Stylized Scientific Motif (Rotating Elements) */}
         <motion.g
           animate={{ 
@@ -71,13 +68,6 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
             stroke="var(--deep-blue)" 
             strokeWidth="0.5" 
             strokeDasharray="2 4"
-          />
-          <motion.path
-            d="M40 50C40 44.4772 44.4772 40 50 40C55.5228 40 60 44.4772 60 50C60 55.5228 55.5228 60 50 60C44.4772 60 40 55.5228 40 50Z"
-            fill="var(--deep-blue)"
-            className="opacity-10"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 4, repeat: Infinity }}
           />
           {/* Focus Crosshair (Now Rotating) */}
           <path d="M50 15V25M50 75V85M15 50H25M75 50H85" stroke="var(--deep-blue)" strokeWidth="1" opacity="0.3" />
