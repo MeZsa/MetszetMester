@@ -684,10 +684,7 @@ export default function App() {
                           )}
                         >
                           <div className="flex items-center gap-5">
-                            <div className={cn(
-                              "p-4 rounded-2xl transition-colors",
-                              activeTab === 'report' ? "bg-white/10" : "bg-primary/5"
-                            )}>
+                            <div className="rounded-2xl transition-colors">
                               <FileText size={28} />
                             </div>
                             <div>
@@ -715,10 +712,7 @@ export default function App() {
                           )}
                         >
                           <div className="flex items-center gap-5">
-                            <div className={cn(
-                              "p-4 rounded-2xl transition-colors",
-                              activeTab === 'structures' ? "bg-white/10" : "bg-primary/5"
-                            )}>
+                            <div className="rounded-2xl transition-colors">
                               <ScientificLogo 
                                 size={28} 
                                 className={cn(activeTab === 'structures' ? "" : "[&_img]:opacity-40")} 
