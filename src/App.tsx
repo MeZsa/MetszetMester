@@ -86,37 +86,8 @@ const ScientificLogo = ({ size = 24, className = "" }: { size?: number, classNam
 
         {/* Focus Crosshair */}
         <path d="M50 15V25M50 75V85M15 50H25M75 50H85" stroke="var(--deep-blue)" strokeWidth="1" opacity="0.3" />
-        
-        {/* Dynamic Specular Highlight */}
-        <motion.circle 
-          cx="30" cy="30" r="15" 
-          fill="white" 
-          fillOpacity="0.2" 
-          filter="url(#glow)"
-          animate={{ 
-            cx: [30, 35, 30],
-            cy: [30, 25, 30],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <circle cx="28" cy="28" r="4" fill="white" fillOpacity="0.5" />
       </svg>
       
-      {/* Specular Sweep Effect */}
-      <motion.div 
-        animate={{ 
-          left: ['-100%', '200%'],
-          top: ['-100%', '200%']
-        }}
-        transition={{ 
-          duration: 3, 
-          repeat: Infinity, 
-          ease: "easeInOut",
-          repeatDelay: 4
-        }}
-        className="absolute w-full h-full bg-gradient-to-br from-transparent via-white/20 to-transparent skew-x-[-20deg] pointer-events-none"
-      />
     </motion.div>
   </div>
 );
@@ -306,20 +277,6 @@ export default function App() {
                   transition={{ delay: 0.2, duration: 0.8 }}
                   className="p-8 text-primary relative overflow-hidden group"
                 >
-                  {/* Continuous Shimmer Effect */}
-                  <motion.div 
-                    animate={{ 
-                      x: ['-200%', '200%'],
-                    }}
-                    transition={{ 
-                      duration: 4, 
-                      repeat: Infinity, 
-                      ease: "easeInOut",
-                      repeatDelay: 0.5
-                    }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-20deg] pointer-events-none"
-                  />
-                  
                   <ScientificLogo size={120} />
                 </motion.div>
                 <div className="space-y-3">
@@ -389,19 +346,6 @@ export default function App() {
               <header className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
                   <div className="relative overflow-hidden p-1 text-primary">
-                    {/* Continuous Shimmer Effect */}
-                    <motion.div 
-                      animate={{ 
-                        x: ['-200%', '200%'],
-                      }}
-                      transition={{ 
-                        duration: 3, 
-                        repeat: Infinity, 
-                        ease: "easeInOut",
-                        repeatDelay: 1
-                      }}
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-20deg] pointer-events-none"
-                    />
                     <ScientificLogo size={32} />
                   </div>
                   <span className="font-serif font-bold text-primary">MetszetMester</span>
