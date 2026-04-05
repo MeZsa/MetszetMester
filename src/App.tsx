@@ -11,7 +11,7 @@ import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
 import logo from './lib/metszetmester.png';
 
-const ScientificLogo = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
+const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => (
   <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
     <motion.div
       animate={{ 
