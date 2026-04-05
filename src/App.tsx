@@ -431,10 +431,13 @@ export default function App() {
       <div className="fixed top-6 right-6 z-[100]">
         <button
           onClick={toggleTheme}
-          className="p-3 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:scale-110 active:scale-95 transition-all"
-          title={theme === 'light' ? 'Sötét mód' : 'Világos mód'}
+          className="flex items-center gap-3 px-5 py-3 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:scale-105 active:scale-95 transition-all group"
+          title={theme === 'light' ? 'Váltás sötét módra' : 'Váltás világos módra'}
         >
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          {theme === 'light' ? <Moon size={18} className="group-hover:rotate-12 transition-transform" /> : <Sun size={18} className="group-hover:rotate-90 transition-transform duration-500" />}
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold">
+            {theme === 'light' ? 'Sötét mód' : 'Világos mód'}
+          </span>
         </button>
       </div>
 
