@@ -318,18 +318,18 @@ export default function App() {
                     transition={{ delay: 0.8, duration: 1 }}
                     className="flex flex-col items-center gap-1"
                   >
-                    <p className="text-[10px] md:text-xs uppercase tracking-[0.5em] opacity-40 font-mono font-bold text-primary">
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.5em] opacity-80 font-mono font-bold text-primary">
                       Histology Educator
                     </p>
-                    <div className="h-px w-12 bg-primary/20 my-1" />
-                    <p className="text-[9px] md:text-[10px] opacity-30 font-serif italic text-primary">
+                    <div className="h-px w-12 bg-primary/60 my-1" />
+                    <p className="text-[10px] md:text-[11px] opacity-90 font-serif italic text-primary tracking-wide font-medium drop-shadow-sm">
                       by Mékli Zsuzsanna
                     </p>
                   </motion.div>
                 </div>
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-serif font-light mb-12 tracking-tight text-primary/70 max-w-2xl leading-relaxed">
+              <h2 className="text-2xl md:text-3xl font-serif font-light mb-12 tracking-tight text-primary/80 max-w-2xl leading-relaxed">
                 Fedezze fel a mikroszkópos világot egy digitális tanársegéd segítségével.
               </h2>
 
