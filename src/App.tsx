@@ -9,112 +9,167 @@ import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
-import logo from './lib/metszetmester.png';
 
-const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => (
-  <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
-    <motion.div
-      animate={{ 
-        rotateY: [0, 15, 0, -15, 0],
-        y: [0, -2, 0, 2, 0]
-      }}
-      transition={{ 
-        duration: 8, 
-        repeat: Infinity, 
-        ease: "easeInOut" 
-      }}
-      className="relative flex items-center justify-center w-full h-full"
-      style={{ perspective: 1000 }}
-    >
-      <svg 
-        viewBox="0 0 100 100" 
-        className="w-full h-full drop-shadow-[0_10px_20px_rgba(31,58,95,0.2)]"
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
+const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
+  return (
+    <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
+      <motion.div
+        animate={{ 
+          y: [0, -5, 0],
+          rotateZ: [0, 0.5, 0, -0.5, 0]
+        }}
+        transition={{ 
+          duration: 8, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+        className="relative flex items-center justify-center w-full h-full"
       >
-        <defs>
-          <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--deep-blue)" />
-            <stop offset="50%" stopColor="var(--med-blue)" />
-            <stop offset="100%" stopColor="var(--deep-blue)" />
-          </linearGradient>
-          <radialGradient id="cellGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--med-blue)" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="var(--med-blue)" stopOpacity="0" />
-          </radialGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-
-        {/* Polished Outer Ring */}
-        <circle cx="50" cy="50" r="48" stroke="url(#ringGradient)" strokeWidth="1" opacity="0.2" />
-        <circle cx="50" cy="50" r="44" stroke="url(#ringGradient)" strokeWidth="3" />
-        
-        {/* Stylized Scientific Motif (Rotating Elements) */}
-        <motion.g
-          animate={{ 
-            rotate: [0, 360]
-          }}
-          transition={{ 
-            duration: 40, 
-            repeat: Infinity, 
-            ease: "linear" 
-          }}
+        <svg 
+          viewBox="0 0 100 100" 
+          className="w-full h-full drop-shadow-[0_15px_35px_rgba(31,58,95,0.3)]"
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <path 
-            d="M50 25C63.8071 25 75 36.1929 75 50C75 63.8071 63.8071 75 50 75C36.1929 75 25 63.8071 25 50" 
-            stroke="var(--deep-blue)" 
-            strokeWidth="0.5" 
-            strokeDasharray="2 4"
-          />
-          {/* Focus Crosshair (Now Rotating) */}
-          <path d="M50 15V25M50 75V85M15 50H25M75 50H85" stroke="var(--deep-blue)" strokeWidth="1" opacity="0.3" />
-        </motion.g>
+          <defs>
+            <radialGradient id="glassGradient" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.6" />
+              <stop offset="40%" stopColor="#f0f9ff" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.3" />
+            </radialGradient>
+            
+            <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="white" stopOpacity="0" />
+            </radialGradient>
 
-        {/* Detailed Microscope Icon (Static) */}
-        <g transform="translate(32, 30) scale(0.35)">
-          {/* Base - Solid and stable */}
-          <path d="M15 85H85" stroke="var(--med-blue)" strokeWidth="8" strokeLinecap="round" opacity="1" />
-          <path d="M50 85V78" stroke="var(--med-blue)" strokeWidth="8" strokeLinecap="round" opacity="1" />
-          
-          {/* Arm - Elegant curve */}
-          <path d="M72 78C72 78 85 65 85 42C85 20 68 10 50 10" stroke="var(--med-blue)" strokeWidth="8" strokeLinecap="round" opacity="1" />
-          
-          {/* Tube & Eyepiece - Professional angle */}
-          <rect x="30" y="15" width="16" height="42" rx="3" transform="rotate(-15 38 36)" fill="var(--med-blue)" opacity="0.9" />
-          <path d="M26 12L38 8" stroke="var(--med-blue)" strokeWidth="10" strokeLinecap="round" opacity="1" />
-          
-          {/* Revolving Nosepiece & Objectives */}
-          <circle cx="44" cy="54" r="8" fill="var(--med-blue)" opacity="0.3" />
-          <rect x="40" y="58" width="7" height="14" rx="2" fill="var(--med-blue)" transform="rotate(-10 43.5 65)" opacity="1" />
-          <rect x="52" y="55" width="6" height="11" rx="2" fill="var(--med-blue)" transform="rotate(20 55 60.5)" opacity="1" />
-          
-          {/* Stage - Precise line */}
-          <path d="M20 68H60" stroke="var(--med-blue)" strokeWidth="6" strokeLinecap="round" opacity="1" />
-          
-          {/* Slide on stage */}
-          <rect x="30" y="66" width="20" height="2" rx="0.5" fill="var(--deep-blue)" opacity="0.4" />
-          
-          {/* Adjustment Knobs - Mechanical feel */}
-          <circle cx="76" cy="50" r="4.5" fill="var(--med-blue)" opacity="1" />
-          <circle cx="76" cy="62" r="3" fill="var(--med-blue)" opacity="1" />
-          
-          {/* Light Source / Mirror - Functional detail */}
-          <motion.circle 
-            cx="40" cy="80" r="5" 
-            fill="var(--deep-blue)" 
-            animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.2, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            <linearGradient id="rimLight" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.5" />
+              <stop offset="50%" stopColor="white" stopOpacity="0" />
+              <stop offset="100%" stopColor="white" stopOpacity="0.3" />
+            </linearGradient>
+
+            {/* Blue gradient for the continuous stream */}
+            <linearGradient id="blueStreamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#34a3e3" />
+              <stop offset="100%" stopColor="var(--deep-blue)" />
+            </linearGradient>
+
+            <filter id="orbitGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="1" result="blur1" />
+              <feGaussianBlur stdDeviation="3" result="blur2" />
+              <feMerge>
+                <feMergeNode in="blur2" />
+                <feMergeNode in="blur1" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Continuous Glowing Light Stream */}
+          <motion.circle
+            cx="50" cy="50"
+            r="46.5"
+            stroke="url(#blueStreamGradient)"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+            filter="url(#orbitGlow)"
+            animate={{ 
+              rotate: [0, 360],
+              opacity: [0.6, 0.9, 0.6],
+              strokeWidth: [0.6, 1, 0.6]
+            }}
+            transition={{ 
+              rotate: { duration: 7, repeat: Infinity, ease: "linear" },
+              opacity: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+              strokeWidth: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            }}
           />
-          <path d="M34 84L46 76" stroke="var(--med-blue)" strokeWidth="4" strokeLinecap="round" opacity="0.7" />
-        </g>
-      </svg>
-      
-    </motion.div>
-  </div>
-);
+
+          {/* Secondary Faster Pulse */}
+          <motion.circle
+            cx="50" cy="50"
+            r="46.5"
+            stroke="white"
+            strokeWidth="0.4"
+            strokeLinecap="round"
+            strokeDasharray="1 291"
+            opacity="0.6"
+            animate={{ 
+              rotate: [360, 0]
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+
+          {/* Glass Sphere Body */}
+          <circle cx="50" cy="50" r="44" fill="url(#glassGradient)" stroke="url(#rimLight)" strokeWidth="0.8" />
+          
+          {/* AI Data Points & Connections (Subtle) */}
+          <motion.g
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <circle cx="42" cy="42" r="1" fill="white" />
+            <circle cx="58" cy="48" r="1" fill="white" />
+            <circle cx="52" cy="62" r="1" fill="white" />
+            <circle cx="38" cy="55" r="1" fill="white" />
+            <path d="M42 42L58 48M58 48L52 62M52 62L38 55M38 55L42 42" stroke="white" strokeWidth="0.2" opacity="0.3" />
+          </motion.g>
+
+          <motion.circle 
+            cx="50" cy="50" r="32" 
+            fill="url(#innerGlow)" 
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Refined & Elegant Microscope Symbol (Based on the structure of the user's drawing) */}
+          <g transform="translate(28, 28) scale(0.44)" stroke="var(--deep-blue)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+            {/* Base - Elegant and stable */}
+            <path d="M15 90 H85" strokeWidth="6" />
+            <path d="M50 90 V82" strokeWidth="6" />
+            
+            {/* Support & Mirror area - Refined */}
+            <circle cx="42" cy="78" r="3.5" fill="var(--deep-blue)" stroke="none" />
+            
+            {/* Stage - Precision platform */}
+            <path d="M22 68 H65" strokeWidth="4.5" />
+            
+            {/* Arm - Elegant architectural curve */}
+            <path d="M80 82 C 80 82 95 65 95 40 C 95 15 80 5 55 5" fill="none" strokeWidth="5.5" />
+            
+            {/* Tube Assembly - Sophisticated shapes */}
+            <g transform="translate(50, 35) rotate(-18)">
+              {/* Eyepiece */}
+              <rect x="-8" y="-38" width="16" height="8" rx="1.5" fill="var(--deep-blue)" stroke="none" />
+              {/* Main Tube */}
+              <rect x="-10" y="-30" width="20" height="48" rx="2" fill="var(--deep-blue)" stroke="none" />
+              {/* Revolving Nosepiece */}
+              <circle cx="0" cy="22" r="10" fill="var(--deep-blue)" stroke="none" />
+              <circle cx="0" cy="22" r="4" fill="white" opacity="0.15" stroke="none" />
+              {/* Objectives - Multiple for detail */}
+              <rect x="-4" y="32" width="8" height="14" rx="1" fill="var(--deep-blue)" stroke="none" />
+              <rect x="6" y="28" width="6" height="10" rx="1" transform="rotate(25 9 33)" fill="var(--deep-blue)" stroke="none" opacity="0.7" />
+            </g>
+            
+            {/* Adjustment Knobs - Adding detail */}
+            <circle cx="80" cy="65" r="5" fill="var(--deep-blue)" stroke="none" />
+            <circle cx="80" cy="55" r="3" fill="var(--deep-blue)" stroke="none" opacity="0.6" />
+          </g>
+
+          {/* Glass Highlights & Reflections */}
+          <ellipse cx="30" cy="26" rx="14" ry="8" fill="white" opacity="0.3" transform="rotate(-35 30 26)" />
+          <path d="M72 72C78 66 82 54 78 42" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.2" />
+          <circle cx="35" cy="35" r="2.5" fill="white" opacity="0.4" />
+        </svg>
+      </motion.div>
+    </div>
+  );
+};
 
 interface AnalysisResult {
   id: string;
@@ -284,7 +339,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col">
       {/* Main Content */}
-      <main className="flex-1 px-6 py-12 md:py-20 bg-grid relative flex flex-col items-center justify-center">
+      <main className="flex-1 px-6 py-12 md:py-20 relative flex flex-col items-center justify-center">
         <div className="max-w-7xl mx-auto w-full">
           {!image ? (
             <motion.div 
@@ -293,7 +348,6 @@ export default function App() {
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center text-center"
             >
-              {/* Centered Logo & Title */}
               <div className="mb-12 md:mb-16 flex flex-col items-center gap-6">
                 <motion.div 
                   initial={{ scale: 0.8, opacity: 0 }}
