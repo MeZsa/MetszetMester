@@ -673,23 +673,23 @@ export default function App() {
                   ) : result ? (
                     <div className="space-y-8">
                       {/* Tab Switcher - Prominent Panel Style */}
-                      <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                      <div className="flex flex-col sm:flex-row gap-3 mb-8">
                         <button
                           onClick={() => setActiveTab('report')}
                           className={cn(
-                            "flex-1 py-6 px-8 rounded-[2.5rem] border-2 transition-all duration-500 text-left group relative overflow-hidden",
+                            "flex-1 py-4 px-6 rounded-3xl border-2 transition-all duration-500 text-left group relative overflow-hidden",
                             activeTab === 'report' 
-                              ? "bg-primary border-primary text-white shadow-2xl scale-[1.02]" 
+                              ? "bg-primary border-primary text-white shadow-xl scale-[1.01]" 
                               : "bg-surface border-line text-primary/40 hover:border-primary/20 hover:text-primary"
                           )}
                         >
-                          <div className="flex items-center gap-5">
-                            <div className="rounded-2xl transition-colors">
-                              <FileText size={28} />
+                          <div className="flex items-center gap-4">
+                            <div className="rounded-xl transition-colors">
+                              <FileText size={24} />
                             </div>
                             <div>
-                              <span className="block text-[10px] font-mono uppercase tracking-widest opacity-60 mb-1">Dokumentáció</span>
-                              <h4 className="text-lg font-serif font-bold">Elemzési Jelentés</h4>
+                              <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Dokumentáció</span>
+                              <h4 className="text-base font-serif font-bold">Elemzési Jelentés</h4>
                             </div>
                           </div>
                           {activeTab === 'report' && (
@@ -705,22 +705,22 @@ export default function App() {
                         <button
                           onClick={() => setActiveTab('structures')}
                           className={cn(
-                            "flex-1 py-6 px-8 rounded-[2.5rem] border-2 transition-all duration-500 text-left group relative overflow-hidden",
+                            "flex-1 py-4 px-6 rounded-3xl border-2 transition-all duration-500 text-left group relative overflow-hidden",
                             activeTab === 'structures' 
-                              ? "bg-primary border-primary text-white shadow-2xl scale-[1.02]" 
+                              ? "bg-primary border-primary text-white shadow-xl scale-[1.01]" 
                               : "bg-surface border-line text-primary/40 hover:border-primary/20 hover:text-primary"
                           )}
                         >
-                          <div className="flex items-center gap-5">
-                            <div className="rounded-2xl transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="rounded-xl transition-colors">
                               <ScientificLogo 
-                                size={28} 
+                                size={24} 
                                 className={cn(activeTab === 'structures' ? "" : "[&_img]:opacity-40")} 
                               />
                             </div>
                             <div>
-                              <span className="block text-[10px] font-mono uppercase tracking-widest opacity-60 mb-1">Morfológia</span>
-                              <h4 className="text-lg font-serif font-bold">Azonosított struktúrák</h4>
+                              <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Morfológia</span>
+                              <h4 className="text-base font-serif font-bold">Azonosított struktúrák</h4>
                             </div>
                           </div>
                           {activeTab === 'structures' && (
