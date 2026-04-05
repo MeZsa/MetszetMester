@@ -35,6 +35,18 @@ export interface HistologyAnalysisResponse {
   annotations: HistologyAnnotation[];
 }
 
+export interface HistologyQuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswerIndex: number;
+  explanation: string;
+  annotationRef?: number; // Index of the annotation this question refers to, if any
+}
+
+export interface HistologyQuizResponse {
+  questions: HistologyQuizQuestion[];
+}
+
 export async function analyzeHistologyImage(base64Image: string, mimeType: string): Promise<HistologyAnalysisResponse> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   
@@ -86,5 +98,70 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw new Error("Hiba történt az elemzés során. Kérjük, próbálja újra később.");
+  }
+}
+
+export async function generateHistologyQuiz(base64Image: string, mimeType: string, analysis: HistologyAnalysisResponse): Promise<HistologyQuizResponse> {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  
+  const quizPrompt = `
+    Készíts egy 5 kérdésből álló feleletválasztós kvízt a mellékelt szövettani kép és az alábbi elemzés alapján.
+    
+    Elemzés:
+    ${analysis.report}
+    
+    Annotációk:
+    ${JSON.stringify(analysis.annotations)}
+    
+    A kvíz célja a hallgatók tudásának tesztelése. A kérdések vonatkozhatnak a struktúrák azonosítására, funkciójukra vagy a képen látható jellegzetességekre.
+    Minden kérdéshez adj 4 opciót, jelöld meg a helyes választ, és adj egy rövid magyarázatot.
+    Ha egy kérdés egy konkrét annotációra vonatkozik, add meg annak az indexét az 'annotationRef' mezőben.
+  `;
+
+  try {
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        {
+          parts: [
+            { text: quizPrompt },
+            { inlineData: { data: base64Image.split(',')[1], mimeType } }
+          ]
+        }
+      ],
+      config: {
+        systemInstruction: "Ön egy szövettan oktató. Készítsen szakmailag pontos, tanulságos kvízt.",
+        temperature: 0.4,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            questions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  question: { type: Type.STRING },
+                  options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  correctAnswerIndex: { type: Type.NUMBER },
+                  explanation: { type: Type.STRING },
+                  annotationRef: { type: Type.NUMBER }
+                },
+                required: ["question", "options", "correctAnswerIndex", "explanation"]
+              }
+            }
+          },
+          required: ["questions"]
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || "{}");
+    return {
+      questions: result.questions || []
+    };
+  } catch (error) {
+    console.error("Gemini Quiz Error:", error);
+    throw new Error("Hiba történt a kvíz generálása során.");
   }
 }

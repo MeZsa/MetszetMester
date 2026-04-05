@@ -4,11 +4,11 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
-import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
+import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion } from './services/gemini';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -237,7 +237,14 @@ export default function App() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFloating, setIsFloating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'report' | 'structures'>('report');
+  const [activeTab, setActiveTab] = useState<'report' | 'structures' | 'quiz'>('report');
+  const [quizQuestions, setQuizQuestions] = useState<HistologyQuizQuestion[]>([]);
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizFinished, setQuizFinished] = useState(false);
+  const [userAnswers, setUserAnswers] = useState<(number | null)[]>([]);
+  const [quizFeedback, setQuizFeedback] = useState<string | null>(null);
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
@@ -348,6 +355,51 @@ export default function App() {
     setAnnotations(item.annotations);
     setActiveTab('report');
     setError(null);
+  };
+
+  const startQuiz = async () => {
+    if (!image || !result) return;
+    setIsGeneratingQuiz(true);
+    setActiveTab('quiz');
+    setCurrentQuestionIndex(0);
+    setQuizScore(0);
+    setQuizFinished(false);
+    setUserAnswers([]);
+    setQuizFeedback(null);
+    
+    try {
+      const quizResponse = await generateHistologyQuiz(image, 'image/jpeg', { report: result, annotations });
+      setQuizQuestions(quizResponse.questions);
+    } catch (err: any) {
+      setError(err.message || 'Hiba történt a kvíz generálása során.');
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
+
+  const handleAnswer = (answerIndex: number) => {
+    if (quizFinished || quizFeedback) return;
+    
+    const currentQuestion = quizQuestions[currentQuestionIndex];
+    const isCorrect = answerIndex === currentQuestion.correctAnswerIndex;
+    
+    if (isCorrect) setQuizScore(prev => prev + 1);
+    
+    setUserAnswers(prev => [...prev, answerIndex]);
+    setQuizFeedback(isCorrect ? 'Helyes válasz!' : `Helytelen. A helyes válasz: ${currentQuestion.options[currentQuestion.correctAnswerIndex]}`);
+    
+    if (currentQuestion.annotationRef !== undefined && annotations[currentQuestion.annotationRef]) {
+      focusAnnotation(annotations[currentQuestion.annotationRef], currentQuestion.annotationRef);
+    }
+
+    setTimeout(() => {
+      setQuizFeedback(null);
+      if (currentQuestionIndex < quizQuestions.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        setQuizFinished(true);
+      }
+    }, 4000);
   };
 
   return (
@@ -800,6 +852,34 @@ export default function App() {
                             />
                           )}
                         </button>
+
+                        <button
+                          onClick={startQuiz}
+                          className={cn(
+                            "flex-1 py-4 px-6 rounded-3xl border-2 transition-all duration-500 text-left group relative overflow-hidden",
+                            activeTab === 'quiz' 
+                              ? "bg-secondary border-secondary text-white shadow-xl scale-[1.01]" 
+                              : "bg-surface border-line text-primary/40 hover:border-secondary/20 hover:text-secondary"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="rounded-xl transition-colors">
+                              <Brain size={24} />
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Oktatás</span>
+                              <h4 className="text-base font-serif font-bold">Szövettan Kvíz</h4>
+                            </div>
+                          </div>
+                          {activeTab === 'quiz' && (
+                            <motion.div 
+                              layoutId="tab-glow"
+                              className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0"
+                              animate={{ x: ['-100%', '100%'] }}
+                              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            />
+                          )}
+                        </button>
                       </div>
 
                       <AnimatePresence mode="wait">
@@ -820,7 +900,7 @@ export default function App() {
                               <Markdown>{result}</Markdown>
                             </div>
                           </motion.div>
-                        ) : (
+                        ) : activeTab === 'structures' ? (
                           <motion.div 
                             key="structures-tab"
                             initial={{ opacity: 0, y: 10 }}
@@ -872,6 +952,134 @@ export default function App() {
                                 ))}
                               </div>
                             </div>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="quiz-tab"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.4 }}
+                            className="space-y-8"
+                          >
+                            <div className="mb-8 border-b border-line pb-4">
+                              <h3 className="font-serif text-xl font-bold text-primary">Szövettan Kvíz</h3>
+                              <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histology Knowledge Test</p>
+                            </div>
+
+                            {isGeneratingQuiz ? (
+                              <div className="flex flex-col items-center justify-center py-20 gap-6 text-center">
+                                <Loader2 className="animate-spin text-secondary" size={48} />
+                                <p className="text-xl font-serif italic text-primary">Kvíz kérdések generálása...</p>
+                              </div>
+                            ) : quizFinished ? (
+                              <div className="p-8 md:p-12 bg-surface border border-line rounded-[3rem] text-center space-y-8 shadow-sm">
+                                <div className="inline-flex p-6 bg-secondary/10 rounded-full text-secondary mb-4">
+                                  <Trophy size={48} />
+                                </div>
+                                <div className="space-y-2">
+                                  <h3 className="text-3xl font-serif font-bold text-primary">Kvíz Befejezve!</h3>
+                                  <p className="text-lg text-primary/60">Gratulálunk a teljesítéshez.</p>
+                                </div>
+                                <div className="text-6xl font-serif font-bold text-secondary">
+                                  {quizScore} / {quizQuestions.length}
+                                </div>
+                                <p className="text-sm text-primary/40 max-w-md mx-auto">
+                                  {quizScore === quizQuestions.length 
+                                    ? "Tökéletes válaszok! Ön kiválóan ismeri ezt a szövettani metszetet." 
+                                    : "Szép munka! Folytassa a gyakorlást a még mélyebb tudásért."}
+                                </p>
+                                <button 
+                                  onClick={startQuiz}
+                                  className="px-8 py-4 bg-primary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/20"
+                                >
+                                  Új kvíz indítása
+                                </button>
+                              </div>
+                            ) : quizQuestions.length > 0 ? (
+                              <div className="space-y-8">
+                                <div className="flex items-center justify-between px-4">
+                                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Kérdés {currentQuestionIndex + 1} / {quizQuestions.length}</span>
+                                  <div className="h-1.5 w-32 bg-line rounded-full overflow-hidden">
+                                    <motion.div 
+                                      className="h-full bg-secondary"
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="p-8 md:p-10 bg-surface border border-line rounded-[3rem] shadow-sm space-y-8">
+                                  <h3 className="text-xl md:text-2xl font-serif font-bold text-primary leading-relaxed">
+                                    {quizQuestions[currentQuestionIndex].question}
+                                  </h3>
+
+                                  <div className="grid grid-cols-1 gap-4">
+                                    {quizQuestions[currentQuestionIndex].options.map((option, idx) => {
+                                      const isSelected = userAnswers[currentQuestionIndex] === idx;
+                                      const isCorrect = idx === quizQuestions[currentQuestionIndex].correctAnswerIndex;
+                                      const showResult = quizFeedback !== null;
+
+                                      return (
+                                        <button
+                                          key={idx}
+                                          disabled={showResult}
+                                          onClick={() => handleAnswer(idx)}
+                                          className={cn(
+                                            "p-5 rounded-2xl border-2 text-left transition-all duration-300 flex items-center justify-between group",
+                                            showResult 
+                                              ? isCorrect 
+                                                ? "bg-green-50 border-green-500 text-green-700"
+                                                : isSelected 
+                                                  ? "bg-red-50 border-red-500 text-red-700"
+                                                  : "bg-surface border-line opacity-40"
+                                              : "bg-surface border-line hover:border-primary/30 hover:bg-primary/5 text-primary"
+                                          )}
+                                        >
+                                          <span className="font-medium">{option}</span>
+                                          {showResult && isCorrect && <CheckCircle2 size={20} className="text-green-500" />}
+                                          {showResult && isSelected && !isCorrect && <XCircle size={20} className="text-red-500" />}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+
+                                  <AnimatePresence>
+                                    {quizFeedback && (
+                                      <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="pt-6 border-t border-line"
+                                      >
+                                        <div className="flex gap-4 p-6 bg-primary/5 rounded-2xl">
+                                          <div className="p-2 bg-white rounded-lg shadow-sm h-fit">
+                                            <Info size={20} className="text-primary" />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <p className="text-sm font-bold text-primary">Magyarázat</p>
+                                            <p className="text-sm text-primary/70 leading-relaxed">
+                                              {quizQuestions[currentQuestionIndex].explanation}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center py-20 gap-6 text-center">
+                                <Brain className="text-primary/10" size={64} />
+                                <p className="text-lg font-serif italic text-primary/40">Kattintson az "Új kvíz indítása" gombra a kezdéshez.</p>
+                                <button 
+                                  onClick={startQuiz}
+                                  className="px-8 py-4 bg-primary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-primary/90 transition-all"
+                                >
+                                  Kvíz Generálása
+                                </button>
+                              </div>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>
