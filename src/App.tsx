@@ -49,16 +49,20 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
               <stop offset="100%" stopColor="white" stopOpacity="0.3" />
             </linearGradient>
 
-            {/* Blue gradient for the continuous stream */}
+            {/* Enhanced Neon Blue gradient */}
             <linearGradient id="blueStreamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#34a3e3" />
-              <stop offset="100%" stopColor="var(--deep-blue)" />
+              <stop offset="0%" stopColor="#00f2ff" />
+              <stop offset="50%" stopColor="#34a3e3" />
+              <stop offset="100%" stopColor="#1e40af" />
             </linearGradient>
 
-            <filter id="orbitGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="1" result="blur1" />
-              <feGaussianBlur stdDeviation="3" result="blur2" />
+            <filter id="neonGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="1.5" result="blur1" />
+              <feGaussianBlur stdDeviation="4" result="blur2" />
+              <feGaussianBlur stdDeviation="8" result="blur3" />
+              <feColorMatrix in="blur3" type="matrix" values="0 0 0 0 0  0 0 0 0 0.95  0 0 0 0 1  0 0 0 0.4 0" result="glow3" />
               <feMerge>
+                <feMergeNode in="glow3" />
                 <feMergeNode in="blur2" />
                 <feMergeNode in="blur1" />
                 <feMergeNode in="SourceGraphic" />
@@ -66,18 +70,28 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
             </filter>
           </defs>
 
-          {/* Continuous Glowing Light Stream */}
+          {/* Outer Neon Aura (Static soft glow) */}
+          <circle
+            cx="50" cy="50"
+            r="46.5"
+            stroke="#00f2ff"
+            strokeWidth="0.5"
+            opacity="0.15"
+            filter="blur(4px)"
+          />
+
+          {/* Continuous Glowing Neon Light Stream */}
           <motion.circle
             cx="50" cy="50"
             r="46.5"
             stroke="url(#blueStreamGradient)"
-            strokeWidth="0.8"
+            strokeWidth="1.0"
             strokeLinecap="round"
-            filter="url(#orbitGlow)"
+            filter="url(#neonGlow)"
             animate={{ 
               rotate: [0, 360],
-              opacity: [0.6, 0.9, 0.6],
-              strokeWidth: [0.6, 1, 0.6]
+              opacity: [0.8, 1, 0.8],
+              strokeWidth: [0.9, 1.3, 0.9]
             }}
             transition={{ 
               rotate: { duration: 7, repeat: Infinity, ease: "linear" },
@@ -91,7 +105,7 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
             cx="50" cy="50"
             r="46.5"
             stroke="white"
-            strokeWidth="0.4"
+            strokeWidth="0.5"
             strokeLinecap="round"
             strokeDasharray="1 291"
             opacity="0.6"
@@ -128,7 +142,7 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
           />
           
           {/* Refined & Elegant Microscope Symbol (Based on the structure of the user's drawing) */}
-          <g transform="translate(28, 28) scale(0.44)" stroke="var(--deep-blue)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+          <g transform="translate(25.8, 29.1) scale(0.44)" stroke="var(--deep-blue)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
             {/* Base - Elegant and stable */}
             <path d="M15 90 H85" strokeWidth="6" />
             <path d="M50 90 V82" strokeWidth="6" />
