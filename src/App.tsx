@@ -4,76 +4,50 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, Microscope, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation } from './services/gemini';
+import logo from './lib/metszetmester.png';
 
-const ThreeDMicroscope = ({ size = 24, className = "", strokeWidth = 1.2 }: { size?: number, className?: string, strokeWidth?: number }) => (
+const ScientificLogo = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
   <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
     <motion.div
       animate={{ 
         rotateY: [0, 15, 0, -15, 0],
-        rotateX: [0, -8, 0, 8, 0],
         y: [0, -2, 0, 2, 0]
       }}
-      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      className="relative preserve-3d"
+      transition={{ 
+        duration: 8, 
+        repeat: Infinity, 
+        ease: "easeInOut" 
+      }}
+      className="relative flex items-center justify-center"
+      style={{ perspective: 1000 }}
     >
-      {/* Deep Shadow */}
-      <Microscope 
-        size={size} 
-        strokeWidth={strokeWidth} 
-        className="absolute top-[6px] left-[4px] text-black/30 blur-[3px] opacity-40" 
+      <img 
+        src={logo} 
+        alt="MetszetMester Logo" 
+        className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
+        style={{ width: size, height: size }}
       />
       
-      {/* 3D Stacked Layers for Depth */}
-      {[1, 2, 3].map((offset) => (
-        <Microscope 
-          key={offset}
-          size={size} 
-          strokeWidth={strokeWidth} 
-          className="absolute text-primary/10" 
-          style={{ transform: `translateZ(${-offset * 2}px) translate(${offset}px, ${offset}px)` }}
-        />
-      ))}
-
-      {/* Inner Glow / Ambient Light */}
-      <motion.div
-        animate={{ opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0"
-      >
-        <Microscope 
-          size={size} 
-          strokeWidth={strokeWidth + 0.8} 
-          className="text-secondary/40 blur-[6px]" 
-        />
-      </motion.div>
-
-      {/* Main Front Layer */}
-      <div className="relative">
-        <Microscope 
-          size={size} 
-          strokeWidth={strokeWidth} 
-          className="relative text-white drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" 
-        />
-        
-        {/* Specular Highlight (The "Lens" Shine) */}
-        <motion.div 
-          animate={{ 
-            opacity: [0.2, 0.6, 0.2],
-            x: [-10, 10, -10],
-            y: [-10, 10, -10]
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-1/3 h-1/3 bg-white/40 blur-[8px] rounded-full pointer-events-none"
-        />
-      </div>
-
-      {/* Bottom Reflection / Base Glow */}
-      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-secondary/20 blur-[4px] rounded-full" />
+      {/* Specular Highlight */}
+      <motion.div 
+        animate={{ 
+          opacity: [0.1, 0.3, 0.1],
+          scale: [0.8, 1.1, 0.8],
+          x: [-size/4, size/4, -size/4]
+        }}
+        transition={{ 
+          duration: 5, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+        className="absolute top-1/4 left-1/4 bg-white/20 blur-[15px] rounded-full pointer-events-none"
+        style={{ width: size/2, height: size/2 }}
+      />
     </motion.div>
   </div>
 );
@@ -261,7 +235,7 @@ export default function App() {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
-                  className="p-5 bg-gradient-to-br from-primary to-secondary text-white rounded-[2rem] shadow-[0_20px_40px_rgba(31,58,95,0.2)] relative overflow-hidden group"
+                  className="p-8 text-primary relative overflow-hidden group"
                 >
                   {/* Continuous Shimmer Effect */}
                   <motion.div 
@@ -274,17 +248,10 @@ export default function App() {
                       ease: "easeInOut",
                       repeatDelay: 0.5
                     }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg] pointer-events-none"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-20deg] pointer-events-none"
                   />
                   
-                  {/* Ambient Pulse Glow */}
-                  <motion.div
-                    animate={{ opacity: [0, 0.2, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute inset-0 bg-white pointer-events-none"
-                  />
-
-                  <ThreeDMicroscope size={48} strokeWidth={1.2} />
+                  <ScientificLogo size={120} />
                 </motion.div>
                 <div className="space-y-3">
                   <motion.h1 
@@ -352,7 +319,7 @@ export default function App() {
               {/* Minimal Header when image is present */}
               <header className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
-                  <div className="p-2 bg-gradient-to-br from-primary to-secondary text-white rounded-xl shadow-lg relative overflow-hidden">
+                  <div className="relative overflow-hidden p-1 text-primary">
                     {/* Continuous Shimmer Effect */}
                     <motion.div 
                       animate={{ 
@@ -364,9 +331,9 @@ export default function App() {
                         ease: "easeInOut",
                         repeatDelay: 1
                       }}
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] pointer-events-none"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-20deg] pointer-events-none"
                     />
-                    <ThreeDMicroscope size={18} strokeWidth={1.5} />
+                    <ScientificLogo size={32} />
                   </div>
                   <span className="font-serif font-bold text-primary">MetszetMester</span>
                 </div>
@@ -459,7 +426,7 @@ export default function App() {
                                 }
                               }}
                             >
-                              <rect
+                              <motion.rect
                                 x={ann.xmin}
                                 y={ann.ymin}
                                 width={ann.xmax - ann.xmin}
@@ -471,6 +438,15 @@ export default function App() {
                                   "transition-all duration-300",
                                   hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? "text-secondary" : "text-primary/40"
                                 )}
+                                animate={hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? {
+                                  strokeWidth: [4 / zoom, 8 / zoom, 4 / zoom],
+                                  opacity: [1, 0.6, 1],
+                                } : {}}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
                               />
                               {(hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx || zoom > 2) && (
                                 <motion.g initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -613,8 +589,8 @@ export default function App() {
                           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
                           transition={{ duration: 3, repeat: Infinity }}
                         >
-                          <div className="p-4 bg-gradient-to-br from-primary to-secondary rounded-3xl shadow-2xl">
-                            <ThreeDMicroscope size={40} strokeWidth={1.2} />
+                          <div className="p-4 text-primary relative overflow-hidden">
+                            <ScientificLogo size={80} />
                           </div>
                         </motion.div>
                       </div>
@@ -706,10 +682,9 @@ export default function App() {
                               "p-4 rounded-2xl transition-colors",
                               activeTab === 'structures' ? "bg-white/10" : "bg-primary/5"
                             )}>
-                              <ThreeDMicroscope 
+                              <ScientificLogo 
                                 size={28} 
-                                strokeWidth={1.2} 
-                                className={cn(activeTab === 'structures' ? "" : "[&_svg]:text-primary/40")} 
+                                className={cn(activeTab === 'structures' ? "" : "[&_img]:opacity-40")} 
                               />
                             </div>
                             <div>
@@ -760,9 +735,9 @@ export default function App() {
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Detailed Morphological Identification</p>
                             </div>
 
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                              {/* List of Descriptions with Micro-Crops */}
-                              <div className="space-y-4">
+                            <div className="w-full">
+                              {/* List of Descriptions */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {annotations.map((ann, idx) => (
                                   <motion.div
                                     key={idx}
@@ -770,115 +745,32 @@ export default function App() {
                                     onMouseLeave={() => setHoveredAnnotationIndex(null)}
                                     onClick={() => focusAnnotation(ann, idx)}
                                     className={cn(
-                                      "p-4 rounded-[2rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
+                                      "p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
                                       selectedAnnotationIndex === idx 
-                                        ? "bg-secondary/5 border-secondary/30 shadow-md translate-x-2" 
+                                        ? "bg-secondary/5 border-secondary/30 shadow-md translate-y-[-4px]" 
                                         : "bg-surface border-line hover:border-primary/20"
                                     )}
                                   >
-                                    <div className="flex items-center gap-5">
-                                      {/* Micro-Crop Preview */}
-                                      <div className={cn(
-                                        "w-20 h-20 rounded-2xl overflow-hidden border transition-all duration-500 bg-black flex-shrink-0 relative",
-                                        selectedAnnotationIndex === idx ? "border-secondary ring-4 ring-secondary/10" : "border-line"
-                                      )}>
-                                        <div 
-                                          className="absolute inset-0 opacity-80 group-hover:opacity-100 transition-opacity"
-                                          style={{
-                                            backgroundImage: `url(${image})`,
-                                            backgroundSize: '800%', // 8x zoom for thumbnail
-                                            backgroundPosition: `${(((ann.xmin + ann.xmax) / 2000) * 8 - 0.5) / 7 * 100}% ${(((ann.ymin + ann.ymax) / 2000) * 8 - 0.5) / 7 * 100}%`,
-                                            backgroundRepeat: 'no-repeat'
-                                          }}
-                                        />
+                                    <div className="flex flex-col gap-2">
+                                      <div className="flex items-center justify-between">
+                                        <span className={cn(
+                                          "text-xl font-serif font-bold transition-colors",
+                                          selectedAnnotationIndex === idx ? "text-secondary" : "text-primary"
+                                        )}>
+                                          {ann.label}
+                                        </span>
                                         {selectedAnnotationIndex === idx && (
-                                          <motion.div 
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="absolute inset-0 border-2 border-secondary/50 rounded-2xl"
-                                          />
+                                          <div className="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-mono uppercase tracking-widest rounded-full">
+                                            Fókuszban
+                                          </div>
                                         )}
                                       </div>
-
-                                      <div className="space-y-1 flex-1">
-                                        <div className="flex items-center justify-between">
-                                          <span className={cn(
-                                            "text-lg font-serif font-bold transition-colors",
-                                            selectedAnnotationIndex === idx ? "text-secondary" : "text-primary"
-                                          )}>
-                                            {ann.label}
-                                          </span>
-                                          {selectedAnnotationIndex === idx && (
-                                            <div className="px-2 py-0.5 bg-secondary/10 text-secondary text-[8px] font-mono uppercase tracking-widest rounded-full">
-                                              Fókuszban
-                                            </div>
-                                          )}
-                                        </div>
-                                        <p className="text-xs text-primary/60 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
-                                          {ann.description}
-                                        </p>
-                                      </div>
+                                      <p className="text-sm text-primary/60 leading-relaxed group-hover:text-primary/80 transition-colors">
+                                        {ann.description}
+                                      </p>
                                     </div>
                                   </motion.div>
                                 ))}
-                              </div>
-
-                              {/* Sticky Zoomed Preview with Precision Overlay */}
-                              <div className="xl:sticky xl:top-12 aspect-square rounded-[3rem] overflow-hidden bg-surface border border-line shadow-xl relative group">
-                                <AnimatePresence mode="wait">
-                                  <motion.div 
-                                    key={selectedAnnotationIndex ?? 'none'}
-                                    initial={{ opacity: 0, scale: 1.1 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="w-full h-full relative"
-                                  >
-                                    <motion.div 
-                                      className="w-full h-full"
-                                      animate={{ 
-                                        scale: selectedAnnotationIndex !== null ? 3 : 1,
-                                        x: selectedAnnotationIndex !== null ? (500 - (annotations[selectedAnnotationIndex].xmin + annotations[selectedAnnotationIndex].xmax) / 2) * 1.2 : 0,
-                                        y: selectedAnnotationIndex !== null ? (500 - (annotations[selectedAnnotationIndex].ymin + annotations[selectedAnnotationIndex].ymax) / 2) * 1.2 : 0
-                                      }}
-                                      transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                                    >
-                                      <img 
-                                        src={image} 
-                                        alt="Focus View" 
-                                        className="w-full h-full object-contain"
-                                        referrerPolicy="no-referrer"
-                                      />
-                                    </motion.div>
-
-                                    {/* Precision Crosshair Overlay */}
-                                    {selectedAnnotationIndex !== null && (
-                                      <>
-                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                                          <div className="relative w-24 h-24">
-                                            <div className="absolute top-1/2 left-0 right-0 h-px bg-secondary/30" />
-                                            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-secondary/30" />
-                                            <div className="absolute inset-0 border border-secondary/20 rounded-full animate-pulse" />
-                                          </div>
-                                        </div>
-                                        
-                                        <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-8 bg-gradient-to-t from-black/60 to-transparent">
-                                          <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="space-y-1"
-                                          >
-                                            <div className="flex items-center gap-2">
-                                              <div className="w-2 h-2 bg-secondary rounded-full animate-ping" />
-                                              <span className="text-[10px] font-mono text-white/60 uppercase tracking-widest">Precision Lock</span>
-                                            </div>
-                                            <h5 className="text-xl font-serif font-bold text-white">{annotations[selectedAnnotationIndex].label}</h5>
-                                          </motion.div>
-                                        </div>
-                                      </>
-                                    )}
-                                  </motion.div>
-                                </AnimatePresence>
                               </div>
                             </div>
                           </motion.div>
