@@ -431,12 +431,25 @@ export default function App() {
       <div className="fixed top-6 right-6 z-[100]">
         <button
           onClick={toggleTheme}
-          className="flex items-center gap-3 px-5 py-3 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:scale-105 active:scale-95 transition-all group"
+          className="flex items-center gap-2.5 px-4 py-2.5 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:shadow-primary/5 hover:scale-105 active:scale-95 transition-all group overflow-hidden"
           title={theme === 'light' ? 'Váltás sötét módra' : 'Váltás világos módra'}
         >
-          {theme === 'light' ? <Moon size={18} className="group-hover:rotate-12 transition-transform" /> : <Sun size={18} className="group-hover:rotate-90 transition-transform duration-500" />}
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold">
-            {theme === 'light' ? 'Sötét mód' : 'Világos mód'}
+          <div className="relative w-4 h-4 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={theme}
+                initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                {theme === 'light' ? <Moon size={14} strokeWidth={2.5} /> : <Sun size={14} strokeWidth={2.5} />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          <span className="text-[9px] font-mono uppercase tracking-[0.15em] font-bold opacity-70 group-hover:opacity-100 transition-opacity">
+            {theme === 'light' ? 'Sötét' : 'Világos'}
           </span>
         </button>
       </div>
