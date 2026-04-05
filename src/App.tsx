@@ -605,36 +605,49 @@ export default function App() {
                                   ease: "easeInOut"
                                 }}
                               />
-                              {(hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx || zoom > 2) && (
-                                <motion.g initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                                  <rect 
-                                    x={((ann.xmin + ann.xmax) / 2) - ((ann.label.length * 8 + 24) / (2 * zoom))} 
-                                    y={ann.ymin - (45 / zoom)} 
-                                    width={(ann.label.length * 8 + 24) / zoom} 
-                                    height={32 / zoom} 
-                                    rx={16 / zoom} 
-                                    className="fill-secondary shadow-2xl"
-                                  />
-                                  <text 
-                                    x={(ann.xmin + ann.xmax) / 2} 
-                                    y={ann.ymin - (24 / zoom)} 
-                                    textAnchor="middle"
-                                    className="fill-white font-bold font-sans select-none"
-                                    style={{ fontSize: `${13 / zoom}px` }}
-                                  >
-                                    {ann.label}
-                                  </text>
-                                  {/* Small pointer triangle */}
-                                  <path 
-                                    d={`M ${(ann.xmin + ann.xmax) / 2 - (6 / zoom)} ${ann.ymin - (14 / zoom)} L ${(ann.xmin + ann.xmax) / 2} ${ann.ymin - (4 / zoom)} L ${(ann.xmin + ann.xmax) / 2 + (6 / zoom)} ${ann.ymin - (14 / zoom)} Z`}
-                                    className="fill-secondary"
-                                  />
-                                </motion.g>
-                              )}
                             </motion.g>
                           ))}
                         </AnimatePresence>
                       </svg>
+
+                      {/* Floating Detailed Tooltip */}
+                      <AnimatePresence>
+                        {hoveredAnnotationIndex !== null && annotations[hoveredAnnotationIndex] && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                            className="absolute z-50 pointer-events-none"
+                            style={{
+                              left: `${(annotations[hoveredAnnotationIndex].xmin + annotations[hoveredAnnotationIndex].xmax) / 20}%`,
+                              top: `${annotations[hoveredAnnotationIndex].ymin / 10}%`,
+                              transform: 'translate(-50%, -110%)',
+                              scale: 1 / zoom // Keep tooltip size consistent regardless of zoom
+                            }}
+                          >
+                            <div className="bg-surface/95 backdrop-blur-md border border-primary/20 p-5 rounded-[2rem] shadow-2xl w-64 md:w-80">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                                  <h4 className="text-sm font-serif font-bold text-primary">
+                                    {annotations[hoveredAnnotationIndex].label}
+                                  </h4>
+                                </div>
+                                <span className="text-[10px] font-mono font-bold text-secondary">#{hoveredAnnotationIndex + 1}</span>
+                              </div>
+                              <p className="text-xs leading-relaxed text-primary/70 font-medium">
+                                {annotations[hoveredAnnotationIndex].description}
+                              </p>
+                              <div className="mt-4 pt-3 border-t border-line/30 flex items-center gap-2">
+                                <Info size={12} className="text-secondary" />
+                                <span className="text-[9px] font-mono uppercase tracking-widest opacity-40">Szövettani Morfológia</span>
+                              </div>
+                            </div>
+                            {/* Tooltip Arrow */}
+                            <div className="w-4 h-4 bg-surface border-r border-b border-primary/20 rotate-45 mx-auto -mt-2 shadow-sm" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                     
                     {/* Zoom Controls Overlay */}
