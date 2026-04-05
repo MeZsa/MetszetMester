@@ -815,6 +815,17 @@ export default function App() {
           )}
         </div>
       </main>
+
+      <footer className="py-12 border-t border-line/10 bg-surface/30 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-[11px] md:text-xs font-serif text-primary/70 tracking-widest uppercase leading-relaxed max-w-3xl mx-auto">
+            © 2026 Szövettani Oktató Program • Ez az eszköz kizárólag oktatási célokat szolgál. 
+            <span className="block mt-2 font-bold text-primary/80">
+              Az AI elemzés nem helyettesíti a szakorvosi véleményt.
+            </span>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
