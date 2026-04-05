@@ -15,8 +15,8 @@ const ScientificLogo = ({ size = 24, className = "" }: { size?: number, classNam
   <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
     <motion.div
       animate={{ 
-        rotate: [0, 5, 0, -5, 0],
-        scale: [1, 1.02, 1]
+        rotateY: [0, 15, 0, -15, 0],
+        y: [0, -2, 0, 2, 0]
       }}
       transition={{ 
         duration: 8, 
@@ -24,73 +24,99 @@ const ScientificLogo = ({ size = 24, className = "" }: { size?: number, classNam
         ease: "easeInOut" 
       }}
       className="relative flex items-center justify-center w-full h-full"
+      style={{ perspective: 1000 }}
     >
       <svg 
         viewBox="0 0 100 100" 
-        className="w-full h-full drop-shadow-[0_4px_12px_rgba(31,58,95,0.1)]"
+        className="w-full h-full drop-shadow-[0_10px_20px_rgba(31,58,95,0.2)]"
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Elegant Outer Ring */}
-        <circle cx="50" cy="50" r="46" stroke="currentColor" strokeWidth="0.5" className="text-primary/20" />
-        <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="1.5" className="text-primary/40" />
-        
-        {/* Abstract Tissue/Cellular Structure */}
-        <mask id="circleMask">
-          <circle cx="50" cy="50" r="40" fill="white" />
-        </mask>
-        
-        <g mask="url(#circleMask)">
-          <motion.path
-            d="M20 50C20 30 40 20 60 30C80 40 80 60 60 70C40 80 20 70 20 50Z"
-            fill="currentColor"
-            className="text-primary/5"
-            animate={{ 
-              d: [
-                "M20 50C20 30 40 20 60 30C80 40 80 60 60 70C40 80 20 70 20 50Z",
-                "M25 45C25 25 45 15 65 25C85 35 85 55 65 65C45 75 25 65 25 45Z",
-                "M20 50C20 30 40 20 60 30C80 40 80 60 60 70C40 80 20 70 20 50Z"
-              ]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          />
-          
-          <motion.path
-            d="M40 40C50 30 70 30 80 40C90 50 80 70 60 80C40 90 30 70 40 40Z"
-            fill="currentColor"
-            className="text-secondary/10"
-            animate={{ 
-              rotate: [0, 360]
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-        </g>
-
-        {/* Minimalist Focus Crosshair */}
-        <line x1="50" y1="42" x2="50" y2="46" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
-        <line x1="50" y1="54" x2="50" y2="58" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
-        <line x1="42" y1="50" x2="46" y2="50" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
-        <line x1="54" y1="50" x2="58" y2="50" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
-
-        {/* Specular Highlight - Subtle & Elegant */}
-        <motion.circle 
-          cx="35" cy="35" r="2" 
-          fill="white" 
-          animate={{ opacity: [0.2, 0.6, 0.2] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        <circle cx="35" cy="35" r="8" fill="url(#grad1)" fillOpacity="0.1" />
-        
         <defs>
-          <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" stopColor="white" />
-            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--deep-blue)" />
+            <stop offset="50%" stopColor="var(--med-blue)" />
+            <stop offset="100%" stopColor="var(--deep-blue)" />
+          </linearGradient>
+          <radialGradient id="cellGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="var(--med-blue)" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="var(--med-blue)" stopOpacity="0" />
           </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
         </defs>
+
+        {/* Polished Outer Ring */}
+        <circle cx="50" cy="50" r="48" stroke="url(#ringGradient)" strokeWidth="1" opacity="0.2" />
+        <circle cx="50" cy="50" r="44" stroke="url(#ringGradient)" strokeWidth="3" />
+        
+        {/* Inner Glass Lens Effect */}
+        <circle cx="50" cy="50" r="40" fill="url(#cellGlow)" />
+        
+        {/* Stylized Scientific Motif (Abstract Cell/Tissue) */}
+        <motion.g
+          animate={{ 
+            rotate: [0, 360]
+          }}
+          transition={{ 
+            duration: 40, 
+            repeat: Infinity, 
+            ease: "linear" 
+          }}
+        >
+          <path 
+            d="M50 25C63.8071 25 75 36.1929 75 50C75 63.8071 63.8071 75 50 75C36.1929 75 25 63.8071 25 50" 
+            stroke="var(--deep-blue)" 
+            strokeWidth="0.5" 
+            strokeDasharray="2 4"
+          />
+          <motion.path
+            d="M40 50C40 44.4772 44.4772 40 50 40C55.5228 40 60 44.4772 60 50C60 55.5228 55.5228 60 50 60C44.4772 60 40 55.5228 40 50Z"
+            fill="var(--deep-blue)"
+            className="opacity-10"
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          {/* Chromosome-like structures */}
+          <path d="M45 40L55 60" stroke="var(--med-blue)" strokeWidth="4" strokeLinecap="round" opacity="0.6" />
+          <path d="M55 40L45 60" stroke="var(--med-blue)" strokeWidth="4" strokeLinecap="round" opacity="0.6" />
+        </motion.g>
+
+        {/* Focus Crosshair */}
+        <path d="M50 15V25M50 75V85M15 50H25M75 50H85" stroke="var(--deep-blue)" strokeWidth="1" opacity="0.3" />
+        
+        {/* Dynamic Specular Highlight */}
+        <motion.circle 
+          cx="30" cy="30" r="15" 
+          fill="white" 
+          fillOpacity="0.2" 
+          filter="url(#glow)"
+          animate={{ 
+            cx: [30, 35, 30],
+            cy: [30, 25, 30],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <circle cx="28" cy="28" r="4" fill="white" fillOpacity="0.5" />
       </svg>
       
-      {/* Subtle Outer Glow */}
-      <div className="absolute inset-0 bg-secondary/5 blur-xl rounded-full -z-10" />
+      {/* Specular Sweep Effect */}
+      <motion.div 
+        animate={{ 
+          left: ['-100%', '200%'],
+          top: ['-100%', '200%']
+        }}
+        transition={{ 
+          duration: 3, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          repeatDelay: 4
+        }}
+        className="absolute w-full h-full bg-gradient-to-br from-transparent via-white/20 to-transparent skew-x-[-20deg] pointer-events-none"
+      />
     </motion.div>
   </div>
 );
