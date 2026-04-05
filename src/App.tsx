@@ -15,39 +15,82 @@ const ScientificLogo = ({ size = 24, className = "" }: { size?: number, classNam
   <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
     <motion.div
       animate={{ 
-        rotateY: [0, 15, 0, -15, 0],
-        y: [0, -2, 0, 2, 0]
+        rotate: [0, 5, 0, -5, 0],
+        scale: [1, 1.02, 1]
       }}
       transition={{ 
         duration: 8, 
         repeat: Infinity, 
         ease: "easeInOut" 
       }}
-      className="relative flex items-center justify-center"
-      style={{ perspective: 1000 }}
+      className="relative flex items-center justify-center w-full h-full"
     >
-      <img 
-        src={logo} 
-        alt="MetszetMester Logo" 
-        className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
-        style={{ width: size, height: size }}
-      />
+      <svg 
+        viewBox="0 0 100 100" 
+        className="w-full h-full drop-shadow-[0_4px_12px_rgba(31,58,95,0.1)]"
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Elegant Outer Ring */}
+        <circle cx="50" cy="50" r="46" stroke="currentColor" strokeWidth="0.5" className="text-primary/20" />
+        <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="1.5" className="text-primary/40" />
+        
+        {/* Abstract Tissue/Cellular Structure */}
+        <mask id="circleMask">
+          <circle cx="50" cy="50" r="40" fill="white" />
+        </mask>
+        
+        <g mask="url(#circleMask)">
+          <motion.path
+            d="M20 50C20 30 40 20 60 30C80 40 80 60 60 70C40 80 20 70 20 50Z"
+            fill="currentColor"
+            className="text-primary/5"
+            animate={{ 
+              d: [
+                "M20 50C20 30 40 20 60 30C80 40 80 60 60 70C40 80 20 70 20 50Z",
+                "M25 45C25 25 45 15 65 25C85 35 85 55 65 65C45 75 25 65 25 45Z",
+                "M20 50C20 30 40 20 60 30C80 40 80 60 60 70C40 80 20 70 20 50Z"
+              ]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          <motion.path
+            d="M40 40C50 30 70 30 80 40C90 50 80 70 60 80C40 90 30 70 40 40Z"
+            fill="currentColor"
+            className="text-secondary/10"
+            animate={{ 
+              rotate: [0, 360]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          />
+        </g>
+
+        {/* Minimalist Focus Crosshair */}
+        <line x1="50" y1="42" x2="50" y2="46" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
+        <line x1="50" y1="54" x2="50" y2="58" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
+        <line x1="42" y1="50" x2="46" y2="50" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
+        <line x1="54" y1="50" x2="58" y2="50" stroke="currentColor" strokeWidth="0.5" className="text-secondary" />
+
+        {/* Specular Highlight - Subtle & Elegant */}
+        <motion.circle 
+          cx="35" cy="35" r="2" 
+          fill="white" 
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <circle cx="35" cy="35" r="8" fill="url(#grad1)" fillOpacity="0.1" />
+        
+        <defs>
+          <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stopColor="white" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+      </svg>
       
-      {/* Specular Highlight */}
-      <motion.div 
-        animate={{ 
-          opacity: [0.1, 0.3, 0.1],
-          scale: [0.8, 1.1, 0.8],
-          x: [-size/4, size/4, -size/4]
-        }}
-        transition={{ 
-          duration: 5, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
-        }}
-        className="absolute top-1/4 left-1/4 bg-white/20 blur-[15px] rounded-full pointer-events-none"
-        style={{ width: size/2, height: size/2 }}
-      />
+      {/* Subtle Outer Glow */}
+      <div className="absolute inset-0 bg-secondary/5 blur-xl rounded-full -z-10" />
     </motion.div>
   </div>
 );
