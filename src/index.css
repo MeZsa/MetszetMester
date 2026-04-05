@@ -2,14 +2,20 @@
 @import "tailwindcss";
 
 :root {
-  --deep-blue: #1f3a5f;
-  --med-blue: #3b6ea5;
-  --warm-beige: #f6f1e7;
-  --off-white: #fdfcf9;
-  --bordeaux: #C74050;
-  --emerald: #249E24;
-  --lab-border: rgba(31, 58, 95, 0.1);
-  --glass-bg: rgba(253, 252, 249, 0.9);
+  --deep-blue: #e2e8f0; /* Slate 200 - used for text/ink */
+  --med-blue: #60a5fa;  /* Blue 400 - used for accents */
+  --warm-beige: #020617; /* Slate 950 - main background */
+  --off-white: #0f172a; /* Slate 900 - cards/surface */
+  --bordeaux: #ef4444;
+  --emerald: #10b981;
+  --lab-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  
+  /* Internal semantic names for clarity */
+  --brand-blue: #1f3a5f; /* Original deep blue for specific UI elements if needed */
+  --ink: #f1f5f9;
+  --bg-dark: #020617;
+  --surface-dark: #0f172a;
 }
 
 @theme {
@@ -17,15 +23,15 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-serif: "Playfair Display", serif;
 
-  --color-primary: var(--deep-blue);
+  --color-primary: var(--med-blue);
   --color-secondary: var(--med-blue);
-  --color-accent: var(--deep-blue);
+  --color-accent: var(--med-blue);
   --color-success: var(--emerald);
   --color-surface: var(--off-white);
   --color-lab-border: var(--lab-border);
   --color-bg: var(--warm-beige);
-  --color-ink: var(--deep-blue);
-  --color-line: rgba(31, 58, 95, 0.1);
+  --color-ink: var(--ink);
+  --color-line: rgba(255, 255, 255, 0.05);
 }
 
 /* Custom Utilities */
@@ -113,7 +119,7 @@ body {
 
 /* Workbench Components */
 .workbench-panel {
-  @apply bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl shadow-xl;
+  @apply bg-surface/80 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl;
 }
 
 .micro-label {

@@ -100,22 +100,22 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
             }}
           />
 
-          {/* Secondary Faster Pulse */}
+          {/* Secondary Faster Pulse (Enhanced Spark) */}
           <motion.circle
             cx="50" cy="50"
             r="46.5"
             stroke="white"
-            strokeWidth="0.5"
+            strokeWidth="0.8"
             strokeLinecap="round"
-            strokeDasharray="1 291"
-            opacity="0.6"
+            strokeDasharray="3 289"
+            opacity="0.8"
             animate={{ 
-              rotate: [360, 0]
+              rotate: [360, 0],
+              opacity: [0.5, 0.9, 0.5]
             }}
             transition={{ 
-              duration: 3,
-              repeat: Infinity,
-              ease: "linear"
+              rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+              opacity: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
             }}
           />
 
