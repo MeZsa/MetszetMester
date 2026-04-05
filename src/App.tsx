@@ -75,37 +75,37 @@ const ScientificLogo = ({ size = 20, className = "" }: { size?: number, classNam
 
         {/* Detailed Microscope Icon (Static) */}
         <g transform="translate(32, 30) scale(0.35)">
-          {/* Base */}
-          <path d="M20 85H80" stroke="var(--med-blue)" strokeWidth="6" strokeLinecap="round" opacity="0.9" />
-          <path d="M50 85V75" stroke="var(--med-blue)" strokeWidth="6" strokeLinecap="round" opacity="0.9" />
+          {/* Base - Solid and stable */}
+          <path d="M15 85H85" stroke="var(--deep-blue)" strokeWidth="8" strokeLinecap="round" opacity="1" />
+          <path d="M50 85V78" stroke="var(--deep-blue)" strokeWidth="8" strokeLinecap="round" opacity="1" />
           
-          {/* Arm */}
-          <path d="M70 75C70 75 82 65 82 45C82 25 65 12 50 12" stroke="var(--med-blue)" strokeWidth="7" strokeLinecap="round" opacity="0.9" />
+          {/* Arm - Elegant curve */}
+          <path d="M72 78C72 78 85 65 85 42C85 20 68 10 50 10" stroke="var(--deep-blue)" strokeWidth="8" strokeLinecap="round" opacity="1" />
           
-          {/* Tube & Eyepiece */}
-          <rect x="32" y="18" width="14" height="38" rx="2" transform="rotate(-15 39 37)" fill="var(--med-blue)" opacity="0.8" />
-          <path d="M28 15L38 10" stroke="var(--med-blue)" strokeWidth="9" strokeLinecap="round" opacity="0.9" />
+          {/* Tube & Eyepiece - Professional angle */}
+          <rect x="30" y="15" width="16" height="42" rx="3" transform="rotate(-15 38 36)" fill="var(--deep-blue)" opacity="0.9" />
+          <path d="M26 12L38 8" stroke="var(--deep-blue)" strokeWidth="10" strokeLinecap="round" opacity="1" />
           
           {/* Revolving Nosepiece & Objectives */}
-          <circle cx="46" cy="52" r="7" fill="var(--med-blue)" opacity="0.4" />
-          <rect x="42" y="55" width="6" height="12" rx="1" fill="var(--med-blue)" transform="rotate(-10 45 61)" opacity="0.9" />
-          <rect x="52" y="53" width="5" height="10" rx="1" fill="var(--med-blue)" transform="rotate(20 54.5 58)" opacity="0.9" />
+          <circle cx="44" cy="54" r="8" fill="var(--deep-blue)" opacity="0.3" />
+          <rect x="40" y="58" width="7" height="14" rx="2" fill="var(--deep-blue)" transform="rotate(-10 43.5 65)" opacity="1" />
+          <rect x="52" y="55" width="6" height="11" rx="2" fill="var(--deep-blue)" transform="rotate(20 55 60.5)" opacity="1" />
           
-          {/* Stage */}
-          <path d="M22 65H58" stroke="var(--med-blue)" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
+          {/* Stage - Precise line */}
+          <path d="M20 68H60" stroke="var(--deep-blue)" strokeWidth="6" strokeLinecap="round" opacity="1" />
           
-          {/* Adjustment Knobs */}
-          <circle cx="74" cy="52" r="3.5" fill="var(--med-blue)" opacity="0.9" />
-          <circle cx="74" cy="62" r="2.5" fill="var(--med-blue)" opacity="0.9" />
+          {/* Adjustment Knobs - Mechanical feel */}
+          <circle cx="76" cy="50" r="4.5" fill="var(--deep-blue)" opacity="1" />
+          <circle cx="76" cy="62" r="3" fill="var(--deep-blue)" opacity="1" />
           
-          {/* Light Source / Mirror */}
+          {/* Light Source / Mirror - Functional detail */}
           <motion.circle 
-            cx="40" cy="78" r="4" 
+            cx="40" cy="80" r="5" 
             fill="var(--med-blue)" 
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
-          <path d="M35 82L45 74" stroke="var(--med-blue)" strokeWidth="3" strokeLinecap="round" opacity="0.6" />
+          <path d="M34 84L46 76" stroke="var(--deep-blue)" strokeWidth="4" strokeLinecap="round" opacity="0.7" />
         </g>
       </svg>
       
