@@ -692,7 +692,7 @@ export default function App() {
                             </div>
                             <div>
                               <span className="block text-[10px] font-mono uppercase tracking-widest opacity-60 mb-1">Dokumentáció</span>
-                              <h4 className="text-xl font-serif font-bold">Elemzési Jelentés</h4>
+                              <h4 className="text-lg font-serif font-bold">Elemzési Jelentés</h4>
                             </div>
                           </div>
                           {activeTab === 'report' && (
@@ -726,7 +726,7 @@ export default function App() {
                             </div>
                             <div>
                               <span className="block text-[10px] font-mono uppercase tracking-widest opacity-60 mb-1">Morfológia</span>
-                              <h4 className="text-xl font-serif font-bold">Azonosított struktúrák</h4>
+                              <h4 className="text-lg font-serif font-bold">Azonosított struktúrák</h4>
                             </div>
                           </div>
                           {activeTab === 'structures' && (
@@ -751,7 +751,7 @@ export default function App() {
                             className="p-4 md:p-0 relative overflow-hidden"
                           >
                             <div className="mb-8 border-b border-line pb-4">
-                              <h3 className="font-serif text-2xl font-bold text-primary">Elemzési Jelentés</h3>
+                              <h3 className="font-serif text-xl font-bold text-primary">Elemzési Jelentés</h3>
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histological Analysis</p>
                             </div>
                             <div className="markdown-body">
@@ -768,7 +768,7 @@ export default function App() {
                             className="space-y-12"
                           >
                             <div className="mb-8 border-b border-line pb-4">
-                              <h3 className="font-serif text-2xl font-bold text-primary">Azonosított struktúrák</h3>
+                              <h3 className="font-serif text-xl font-bold text-primary">Azonosított struktúrák</h3>
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Detailed Morphological Identification</p>
                             </div>
 
