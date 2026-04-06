@@ -259,18 +259,36 @@ const COURSES: Course[] = [
         title: 'Hámok',
         lessons: [
           {
-            id: 'fedohamok',
-            title: 'Fedőhámok osztályozása',
-            content: 'A fedőhámokat a sejtrétegek száma és a legfelső réteg sejtjeinek alakja alapján osztályozzuk. Megkülönböztetünk egyrétegű és többrétegű hámokat. Az egyrétegű hámok lehetnek laphámok, köbhámok vagy hengerhámok. A többrétegű hámoknál a legfelső réteg alakja a meghatározó, például többrétegű elszarusodó laphám a bőr felszínén.',
-            images: ['https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg'],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Lung_tissue.jpg/1024px-Lung_tissue.jpg'
+            id: 'egyretegu-hamok',
+            title: 'Egyrétegű hámok',
+            content: 'Az egyrétegű hámok egyetlen sejtrétegből állnak, amelyek az alaphártyán (basal lamina) nyugszanak. Típusai: \n\n1. **Egyrétegű laphám**: Lapos sejtek, pl. tüdő léghólyagocskák, erek fala (endothel).\n2. **Egyrétegű köbhám**: Kocka alakú sejtek, pl. vese csatornák, mirigyek kivezetőcsövei.\n3. **Egyrétegű hengerhám**: Magas, oszlopszerű sejtek, pl. bélcsatorna nyálkahártyája.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Simple_cuboidal_epithelium.jpg/1024px-Simple_cuboidal_epithelium.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Simple_columnar_epithelium.jpg/1024px-Simple_columnar_epithelium.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg'
           },
           {
-            id: 'mirigyamok',
-            title: 'Mirigyhámok típusai',
-            content: 'A mirigyhámok váladéktermelésre specializálódott sejtekből állnak. Az exokrin mirigyek kivezetőcsővel rendelkeznek és a váladékot testfelszínre vagy üreges szervbe ürítik. Az endokrin mirigyek kivezetőcső nélküliek, váladékukat (hormonokat) közvetlenül a véráramba juttatják.',
-            images: ['https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Glandular_epithelium.jpg/1024px-Glandular_epithelium.jpg'],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Liver_tissue.jpg/1024px-Liver_tissue.jpg'
+            id: 'tobbretegu-hamok',
+            title: 'Többrétegű hámok',
+            content: 'A többrétegű hámok több sejtsorból állnak, védelmi funkciót látnak el. \n\n1. **Többrétegű el nem szarusodó laphám**: Nedves felszíneken, pl. nyelőcső, szájüreg.\n2. **Többrétegű elszarusodó laphám**: A bőr felszínén (epidermis), ahol a felső réteg sejtjei elhalnak és keratinnal telítődnek.\n3. **Urothelium (Transitional)**: Tágulásra képes hám, pl. húgyhólyag.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Transitional_epithelium.jpg/1024px-Transitional_epithelium.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg'
+          },
+          {
+            id: 'mirigy-es-specialis',
+            title: 'Mirigyhámok és speciális formák',
+            content: 'A mirigyhámok váladéktermelésre (szekréció) módosultak. \n\n1. **Exokrin mirigyek**: Kivezetőcsővel rendelkeznek (pl. nyálmirigy).\n2. **Endokrin mirigyek**: Vérbe ürítik a hormonokat (pl. pajzsmirigy).\n3. **Többsoros csillós hengerhám**: Minden sejt érinti az alaphártyát, de nem minden sejt éri el a felszínt. Pl. légcső.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Glandular_epithelium.jpg/1024px-Glandular_epithelium.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Pseudostratified_ciliated_columnar_epithelium.jpg/1024px-Pseudostratified_ciliated_columnar_epithelium.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Goblet_cells.jpg/1024px-Goblet_cells.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Pseudostratified_ciliated_columnar_epithelium.jpg/1024px-Pseudostratified_ciliated_columnar_epithelium.jpg'
           }
         ]
       },
@@ -280,9 +298,67 @@ const COURSES: Course[] = [
         lessons: [
           {
             id: 'rostos-kotoszovet',
-            title: 'Rostos kötőszövet',
-            content: 'A kötőszövet alapállományból, rostokból és alakos elemekből (sejtekből) áll. A rostok lehetnek kollagén (nagy szakítószilárdság), elasztikus (nyújthatóság) vagy retikuláris (térhálós szerkezet) rostok. A sejtek lehetnek fix (pl. fibroblaszt) vagy mobilis (pl. makrofág) sejtek.',
+            title: 'Rostos kötőszövetek',
+            content: 'A kötőszövetek összekötik és rögzítik a szerveket. \n\n1. **Laza rostos kötőszövet**: Sok sejt és alapállomány, kevés rost. Pl. irha papilláris rétege.\n2. **Tömött rostos kötőszövet**: Sok kollagén rost, kevés sejt. Pl. inak, szalagok.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
+            ],
             microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
+          },
+          {
+            id: 'zsirszovet',
+            title: 'Zsírszövet',
+            content: 'A zsírszövet (adiposus szövet) speciális kötőszövet. \n\n1. **Fehér zsírszövet**: Egyetlen nagy zsírcsepp a sejtben (uniloculáris). Energiatárolás.\n2. **Barna zsírszövet**: Sok apró zsírcsepp (multiloculáris). Hőtermelés (főleg újszülötteknél).',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Adipose_tissue.jpg/1024px-Adipose_tissue.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Adipose_tissue.jpg/1024px-Adipose_tissue.jpg'
+          },
+          {
+            id: 'porcszovetek',
+            title: 'Porcszövetek',
+            content: 'A porcszövet ereket nem tartalmazó, rugalmas támasztószövet. \n\n1. **Üvegporc (Hyalin)**: Leggyakoribb, pl. ízületi felszínek, légcső gyűrűk.\n2. **Elasztikus porc**: Sok rugalmas rost, pl. fülkagyló.\n3. **Rostos porc**: Sok kollagén rost, pl. csigolyaközti korongok.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hyaline_cartilage.jpg/1024px-Hyaline_cartilage.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Elastic_cartilage.jpg/1024px-Elastic_cartilage.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Fibrocartilage.jpg/1024px-Fibrocartilage.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hyaline_cartilage.jpg/1024px-Hyaline_cartilage.jpg'
+          },
+          {
+            id: 'csontszovet',
+            title: 'Csontszövet',
+            content: 'A csontszövet mineralizált (kalcium-foszfát) alapállományú támasztószövet. Szerkezeti egysége az **osteon** (Havers-rendszer), amelynek közepén a Havers-csatorna fut.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Compact_bone.jpg/1024px-Compact_bone.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Compact_bone.jpg/1024px-Compact_bone.jpg'
+          }
+        ]
+      },
+      {
+        id: 'izom-es-ideg',
+        title: 'Izom- és idegszövet',
+        lessons: [
+          {
+            id: 'izomszovetek',
+            title: 'Izomszövetek',
+            content: 'Az izomszövetek összehúzódásra (kontrakció) képes sejtekből állnak. \n\n1. **Vázizom**: Harántcsíkolt, sokmagvú rostok, akaratlagos irányítás.\n2. **Szívizom**: Harántcsíkolt, Y alakban elágazó sejtek, Eberth-féle vonalak, önműködő.\n3. **Simaizom**: Orsó alakú sejtek, központi mag, nem harántcsíkolt, önműködő (pl. bélfal).',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Skeletal_muscle.jpg/1024px-Skeletal_muscle.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Cardiac_muscle.jpg/1024px-Cardiac_muscle.jpg',
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Smooth_muscle.jpg/1024px-Smooth_muscle.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Skeletal_muscle.jpg/1024px-Skeletal_muscle.jpg'
+          },
+          {
+            id: 'idegszovet',
+            title: 'Idegszövet',
+            content: 'Az idegszövet neuronokból (ingerületvezetés) és glia sejtekből (támasztás, táplálás) áll. A neuronok részei: sejttest (perikaryon), dendritek és axon.',
+            images: [
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Multipolar_neuron.jpg/1024px-Multipolar_neuron.jpg'
+            ],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Multipolar_neuron.jpg/1024px-Multipolar_neuron.jpg'
           }
         ]
       }
@@ -329,6 +405,38 @@ export default function App() {
   const dragControls = useDragControls();
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processedResult = React.useMemo(() => {
+    if (!result || !annotations.length) return result;
+    
+    let text = result;
+    const sortedAnns = [...annotations]
+      .map((ann, idx) => ({ ...ann, originalIndex: idx }))
+      .sort((a, b) => b.label.length - a.label.length);
+      
+    const placeholders: { placeholder: string, value: string }[] = [];
+    
+    sortedAnns.forEach((ann) => {
+      const escapedLabel = ann.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match the label as a whole word, including Hungarian characters
+      const regex = new RegExp(`(?<![a-zA-ZáéíóöőúüűÁÉÍÓÖŐÚÜŰ])${escapedLabel}(?![a-zA-ZáéíóöőúüűÁÉÍÓÖŐÚÜŰ])`, 'gi');
+      
+      text = text.replace(regex, (match) => {
+        const placeholder = `__ANN_PLACEHOLDER_${placeholders.length}__`;
+        placeholders.push({
+          placeholder,
+          value: `[${match}](annotation:${ann.originalIndex})`
+        });
+        return placeholder;
+      });
+    });
+    
+    placeholders.forEach(({ placeholder, value }) => {
+      text = text.replace(placeholder, value);
+    });
+    
+    return text;
+  }, [result, annotations]);
 
   const handlePan = (direction: 'up' | 'down' | 'left' | 'right') => {
     const step = 50 / zoom;
@@ -1280,7 +1388,26 @@ export default function App() {
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histological Analysis</p>
                             </div>
                             <div className="markdown-body">
-                              <Markdown>{result}</Markdown>
+                              <Markdown
+                                components={{
+                                  a: ({ node, ...props }) => {
+                                    if (props.href?.startsWith('annotation:')) {
+                                      const index = parseInt(props.href.split(':')[1]);
+                                      return (
+                                        <button
+                                          onClick={() => focusAnnotation(annotations[index], index)}
+                                          className="text-secondary font-bold hover:underline cursor-pointer inline-block"
+                                        >
+                                          {props.children}
+                                        </button>
+                                      );
+                                    }
+                                    return <a {...props} />;
+                                  }
+                                }}
+                              >
+                                {processedResult}
+                              </Markdown>
                             </div>
                           </motion.div>
                         ) : activeTab === 'structures' ? (
