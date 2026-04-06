@@ -935,7 +935,7 @@ export default function App() {
                   <div className="relative overflow-hidden p-1 text-primary">
                     <ScientificLogo size={32} />
                   </div>
-                  <span className="font-serif font-bold text-primary">MetszetMester</span>
+                  <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
                 </div>
                 <button 
                   onClick={clearCurrent}
