@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft, LogIn, LogOut, Database } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion } from './services/gemini';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, User, db } from './lib/firebase';
-import { getCourses, seedDatabase, Course, Module, Lesson } from './services/courseService';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -230,14 +227,71 @@ function LoadingMessage() {
   );
 }
 
+interface Lesson {
+  id: string;
+  title: string;
+  content: string;
+  images?: string[];
+  microscopeImage?: string;
+}
+
+interface Module {
+  id: string;
+  title: string;
+  lessons: Lesson[];
+}
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  modules: Module[];
+}
+
+const COURSES: Course[] = [
+  {
+    id: 'alapszovettan',
+    title: 'Alapszövettan',
+    description: 'Bevezetés a szövettan alapjaiba, a fő szövettípusok áttekintése.',
+    modules: [
+      {
+        id: 'hamok',
+        title: 'Hámok',
+        lessons: [
+          {
+            id: 'fedohamok',
+            title: 'Fedőhámok osztályozása',
+            content: 'A fedőhámokat a sejtrétegek száma és a legfelső réteg sejtjeinek alakja alapján osztályozzuk. Megkülönböztetünk egyrétegű és többrétegű hámokat. Az egyrétegű hámok lehetnek laphámok, köbhámok vagy hengerhámok. A többrétegű hámoknál a legfelső réteg alakja a meghatározó, például többrétegű elszarusodó laphám a bőr felszínén.',
+            images: ['https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg'],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Lung_tissue.jpg/1024px-Lung_tissue.jpg'
+          },
+          {
+            id: 'mirigyamok',
+            title: 'Mirigyhámok típusai',
+            content: 'A mirigyhámok váladéktermelésre specializálódott sejtekből állnak. Az exokrin mirigyek kivezetőcsővel rendelkeznek és a váladékot testfelszínre vagy üreges szervbe ürítik. Az endokrin mirigyek kivezetőcső nélküliek, váladékukat (hormonokat) közvetlenül a véráramba juttatják.',
+            images: ['https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Glandular_epithelium.jpg/1024px-Glandular_epithelium.jpg'],
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Liver_tissue.jpg/1024px-Liver_tissue.jpg'
+          }
+        ]
+      },
+      {
+        id: 'kotoszovet',
+        title: 'Kötő- és támasztószövetek',
+        lessons: [
+          {
+            id: 'rostos-kotoszovet',
+            title: 'Rostos kötőszövet',
+            content: 'A kötőszövet alapállományból, rostokból és alakos elemekből (sejtekből) áll. A rostok lehetnek kollagén (nagy szakítószilárdság), elasztikus (nyújthatóság) vagy retikuláris (térhálós szerkezet) rostok. A sejtek lehetnek fix (pl. fibroblaszt) vagy mobilis (pl. makrofág) sejtek.',
+            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
+          }
+        ]
+      }
+    ]
+  }
+];
 
 export default function App() {
   const [view, setView] = useState<'main' | 'courses'>('main');
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAuthReady, setIsAuthReady] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -248,278 +302,6 @@ export default function App() {
     }
     return 'light';
   });
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        // Check if user is admin
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setIsAdmin(userDoc.data().role === 'admin');
-        } else {
-          // Default admin check by email
-          const isDefaultAdmin = user.email === "Mekli.Zsuzsanna@gmail.com";
-          setIsAdmin(isDefaultAdmin);
-          // Create user doc if it doesn't exist
-          await setDoc(doc(db, 'users', user.uid), {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            role: isDefaultAdmin ? 'admin' : 'user'
-          });
-        }
-      } else {
-        setIsAdmin(false);
-      }
-      setIsAuthReady(true);
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (isAuthReady) {
-      fetchCourses();
-    }
-  }, [isAuthReady]);
-
-  const fetchCourses = async () => {
-    setIsLoadingCourses(true);
-    try {
-      const fetchedCourses = await getCourses();
-      setCourses(fetchedCourses);
-    } catch (err) {
-      console.error('Error fetching courses:', err);
-    } finally {
-      setIsLoadingCourses(false);
-    }
-  };
-
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      console.error('Login error:', err);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setView('main');
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  };
-
-  const handleSeedDatabase = async () => {
-    if (!isAdmin) return;
-    setIsLoadingCourses(true);
-    try {
-      // Define initial data to seed
-      const initialData: Course[] = [
-        {
-          id: 'alapszovettan',
-          title: 'Alapszövettan',
-          description: 'Bevezetés a szövettan alapjaiba, a fő szövettípusok áttekintése a Berkshire Community College gyűjteménye alapján.',
-          modules: [
-            {
-              id: 'hamok',
-              title: 'Hámok (Epithelium)',
-              order: 1,
-              lessons: [
-                {
-                  id: 'egyretegu-lapham',
-                  title: 'Egyrétegű laphám',
-                  order: 1,
-                  content: 'Az egyrétegű laphám egyetlen sejtrétegből áll, ahol a sejtek laposak és pikkelyszerűek. \n\n- **Jellemzői**: Vékony gátat képez, amely lehetővé teszi a gyors diffúziót és szűrést.\n- **Előfordulása**: Tüdő alveolusok (léghólyagok), erek endothelje, savós hártyák (mesothel).\n- **Kép**: Berkshire Community College gyűjteményéből.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg'
-                },
-                {
-                  id: 'egyretegu-kobham',
-                  title: 'Egyrétegű köbhám',
-                  order: 2,
-                  content: 'Kocka alakú sejtek, központi, gömbölyű maggal. \n\n- **Funkció**: Szekréció (elválasztás) és abszorpció (felszívás).\n- **Előfordulása**: Vese tubulusok, mirigyek kivezetőcsövei, petefészek felszíne.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Simple_cuboidal_epithelium.jpg/1024px-Simple_cuboidal_epithelium.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Simple_cuboidal_epithelium.jpg/1024px-Simple_cuboidal_epithelium.jpg'
-                },
-                {
-                  id: 'egyretegu-hengerham',
-                  title: 'Egyrétegű hengerhám',
-                  order: 3,
-                  content: 'Magas, oszlopszerű sejtek, ovális maggal a sejt alapja közelében. \n\n- **Típusai**: Csillós és nem csillós (pl. bélcsatornában felszívó szegéllyel).\n- **Előfordulása**: Emésztőrendszer (gyomortól a végbélig), méh, petevezeték.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Simple_columnar_epithelium.jpg/1024px-Simple_columnar_epithelium.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Simple_columnar_epithelium.jpg/1024px-Simple_columnar_epithelium.jpg'
-                },
-                {
-                  id: 'tobbsoros-hengerham',
-                  title: 'Többsoros hengerhám',
-                  order: 4,
-                  content: 'Bár minden sejt érintkezik az alapmembránnal, nem mindegyik éri el a felszínt, így a magok különböző magasságban helyezkednek el. \n\n- **Jellemző**: Gyakran csillós és kehelysejteket tartalmaz.\n- **Előfordulása**: Légutak (trachea, bronchusok).',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Pseudostratified_columnar_epithelium.jpg/1024px-Pseudostratified_columnar_epithelium.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Pseudostratified_columnar_epithelium.jpg/1024px-Pseudostratified_columnar_epithelium.jpg'
-                },
-                {
-                  id: 'tobbretegu-lapham',
-                  title: 'Többrétegű laphám',
-                  order: 5,
-                  content: 'Több sejtrétegből áll, a felszíni réteg laphámsejtekből épül fel. \n\n- **Típusai**: Elszarusodó (bőr) és el nem szarusodó (nyelőcső, szájüreg).\n- **Funkció**: Védelem a mechanikai hatások ellen.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg'
-                },
-                {
-                  id: 'urothelium',
-                  title: 'Urothelium (Átmeneti hám)',
-                  order: 6,
-                  content: 'Speciális többrétegű hám, amely képes a tágulásra. \n\n- **Jellemző**: Esernyősejtek a felszínen.\n- **Előfordulása**: Húgyhólyag, húgyvezeték.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Transitional_epithelium.jpg/1024px-Transitional_epithelium.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Transitional_epithelium.jpg/1024px-Transitional_epithelium.jpg'
-                }
-              ]
-            },
-            {
-              id: 'kotoszovet',
-              title: 'Kötőszövetek',
-              order: 2,
-              lessons: [
-                {
-                  id: 'laza-rostos-kotoszovet',
-                  title: 'Laza rostos kötőszövet',
-                  order: 1,
-                  content: 'Sejtekben gazdag, rostokban szegényebb szövet. \n\n- **Alkotói**: Fibroblasztok, kollagén és elasztikus rostok.\n- **Funkció**: Szervek rögzítése, tápanyagellátás.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
-                },
-                {
-                  id: 'zsirszovet',
-                  title: 'Zsírszövet',
-                  order: 2,
-                  content: 'Adipocytákból álló szövet. \n\n- **Fehér zsírszövet**: Energiatárolás, hőszigetelés.\n- **Barna zsírszövet**: Hőtermelés (főleg újszülöttekben).',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Adipose_tissue.jpg/1024px-Adipose_tissue.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Adipose_tissue.jpg/1024px-Adipose_tissue.jpg'
-                },
-                {
-                  id: 'tomott-rostos-kotoszovet',
-                  title: 'Tömött rostos kötőszövet',
-                  order: 3,
-                  content: 'Rostokban gazdag, sejtekben szegény szövet. \n\n- **Típusai**: Rendezett (inak) és rendezetlen (irha).',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Dense_regular_connective_tissue.jpg/1024px-Dense_regular_connective_tissue.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Dense_regular_connective_tissue.jpg/1024px-Dense_regular_connective_tissue.jpg'
-                }
-              ]
-            },
-            {
-              id: 'tamasztoszovet',
-              title: 'Támasztószövetek',
-              order: 3,
-              lessons: [
-                {
-                  id: 'uvegporc',
-                  title: 'Üvegporc (Hyalinporc)',
-                  order: 1,
-                  content: 'Kékesszürke, áttetsző szövet. \n\n- **Szerkezet**: Chondrocyták csoportokban (territóriumok).\n- **Előfordulása**: Ízületi felszínek, orr, légcső.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hyaline_cartilage.jpg/1024px-Hyaline_cartilage.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hyaline_cartilage.jpg/1024px-Hyaline_cartilage.jpg'
-                },
-                {
-                  id: 'csontszovet',
-                  title: 'Csontszövet',
-                  order: 2,
-                  content: 'Mineralizált alapállományú szövet. \n\n- **Szerkezeti egység**: Osteon (Havers-rendszer).\n- **Sejtek**: Osteocyták a lacunákban.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Compact_bone.jpg/1024px-Compact_bone.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Compact_bone.jpg/1024px-Compact_bone.jpg'
-                }
-              ]
-            },
-            {
-              id: 'izomszovet',
-              title: 'Izomszövet',
-              order: 4,
-              lessons: [
-                {
-                  id: 'vazizom',
-                  title: 'Vázizomszövet',
-                  order: 1,
-                  content: 'Harántcsíkolt, sokmagvú rostokból áll. \n\n- **Jellemző**: Akaratlagos mozgás.\n- **Szerkezet**: Szarkomerek.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Skeletal_muscle.jpg/1024px-Skeletal_muscle.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Skeletal_muscle.jpg/1024px-Skeletal_muscle.jpg'
-                },
-                {
-                  id: 'szivizom',
-                  title: 'Szívizomszövet',
-                  order: 2,
-                  content: 'Harántcsíkolt, de elágazó sejtekből áll. \n\n- **Jellemző**: Eberth-vonalak (discus intercalaris).\n- **Funkció**: Ritmusos összehúzódás.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Cardiac_muscle.jpg/1024px-Cardiac_muscle.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Cardiac_muscle.jpg/1024px-Cardiac_muscle.jpg'
-                },
-                {
-                  id: 'simaizom',
-                  title: 'Simaizomszövet',
-                  order: 3,
-                  content: 'Orsó alakú sejtek, egy központi maggal. \n\n- **Jellemző**: Akaratunktól független.\n- **Előfordulása**: Zsigeri szervek fala.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Smooth_muscle.jpg/1024px-Smooth_muscle.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Smooth_muscle.jpg/1024px-Smooth_muscle.jpg'
-                }
-              ]
-            },
-            {
-              id: 'idegszovet',
-              title: 'Idegszövet',
-              order: 5,
-              lessons: [
-                {
-                  id: 'neuron',
-                  title: 'Neuron és Glia',
-                  order: 1,
-                  content: 'Ingerületvezetésre specializálódott szövet. \n\n- **Neuron**: Perikaryon, dendritek, axon.\n- **Glia**: Támasztó és tápláló funkció.',
-                  images: [
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Multipolar_neuron.jpg/1024px-Multipolar_neuron.jpg'
-                  ],
-                  microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Multipolar_neuron.jpg/1024px-Multipolar_neuron.jpg'
-                }
-              ]
-            }
-          ]
-        }
-      ];
-      await seedDatabase(initialData);
-      await fetchCourses();
-    } catch (err) {
-      console.error('Seed error:', err);
-    } finally {
-      setIsLoadingCourses(false);
-    }
-  };
 
   React.useEffect(() => {
     localStorage.setItem('metszetmester-theme', theme);
@@ -547,38 +329,6 @@ export default function App() {
   const dragControls = useDragControls();
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const processedResult = React.useMemo(() => {
-    if (!result || !annotations.length) return result;
-    
-    let text = result;
-    const sortedAnns = [...annotations]
-      .map((ann, idx) => ({ ...ann, originalIndex: idx }))
-      .sort((a, b) => b.label.length - a.label.length);
-      
-    const placeholders: { placeholder: string, value: string }[] = [];
-    
-    sortedAnns.forEach((ann) => {
-      const escapedLabel = ann.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Match the label as a whole word, including Hungarian characters
-      const regex = new RegExp(`(?<![a-zA-ZáéíóöőúüűÁÉÍÓÖŐÚÜŰ])${escapedLabel}(?![a-zA-ZáéíóöőúüűÁÉÍÓÖŐÚÜŰ])`, 'gi');
-      
-      text = text.replace(regex, (match) => {
-        const placeholder = `__ANN_PLACEHOLDER_${placeholders.length}__`;
-        placeholders.push({
-          placeholder,
-          value: `[${match}](annotation:${ann.originalIndex})`
-        });
-        return placeholder;
-      });
-    });
-    
-    placeholders.forEach(({ placeholder, value }) => {
-      text = text.replace(placeholder, value);
-    });
-    
-    return text;
-  }, [result, annotations]);
 
   const handlePan = (direction: 'up' | 'down' | 'left' | 'right') => {
     const step = 50 / zoom;
@@ -757,43 +507,8 @@ export default function App() {
       "min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col transition-colors duration-500",
       theme === 'dark' && "dark"
     )}>
-      {/* Header Actions */}
-      <div className="fixed top-6 right-6 z-[100] flex items-center gap-3">
-        {user ? (
-          <div className="flex items-center gap-3">
-            {isAdmin && (
-              <button
-                onClick={handleSeedDatabase}
-                disabled={isLoadingCourses}
-                className="flex items-center gap-2.5 px-4 py-2.5 bg-secondary/80 backdrop-blur-md border border-line rounded-full text-white shadow-lg hover:shadow-secondary/20 hover:scale-105 active:scale-95 transition-all group disabled:opacity-50"
-                title="Adatbázis feltöltése"
-              >
-                <Database size={14} />
-                <span className="text-[9px] font-mono uppercase tracking-[0.15em] font-bold">Seed</span>
-              </button>
-            )}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2.5 px-4 py-2.5 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:shadow-primary/5 hover:scale-105 active:scale-95 transition-all group overflow-hidden"
-            >
-              <LogOut size={14} />
-              <span className="text-[9px] font-mono uppercase tracking-[0.15em] font-bold opacity-70 group-hover:opacity-100 transition-opacity">
-                Kijelentkezés
-              </span>
-            </button>
-            <div className="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden shadow-md">
-              <img src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} alt="User" className="w-full h-full object-cover" />
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={handleLogin}
-            className="flex items-center gap-2.5 px-6 py-2.5 bg-primary text-white rounded-full shadow-lg hover:shadow-primary/20 hover:scale-105 active:scale-95 transition-all group"
-          >
-            <LogIn size={14} />
-            <span className="text-[9px] font-mono uppercase tracking-[0.15em] font-bold">Bejelentkezés</span>
-          </button>
-        )}
+      {/* Theme Toggle Button */}
+      <div className="fixed top-6 right-6 z-[100]">
         <button
           onClick={toggleTheme}
           className="flex items-center gap-2.5 px-4 py-2.5 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:shadow-primary/5 hover:scale-105 active:scale-95 transition-all group overflow-hidden"
@@ -850,43 +565,24 @@ export default function App() {
 
               {!selectedCourse ? (
                 /* Course List */
-                <div className="space-y-8">
-                  {isLoadingCourses ? (
-                    <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      <p className="text-xs font-mono uppercase tracking-widest opacity-40">Kurzusok betöltése...</p>
-                    </div>
-                  ) : courses.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {courses.map(course => (
-                        <motion.div
-                          key={course.id}
-                          whileHover={{ y: -5 }}
-                          onClick={() => setSelectedCourse(course)}
-                          className="p-8 bg-surface border border-line rounded-[2.5rem] cursor-pointer group hover:border-primary/30 transition-all shadow-sm"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <BookOpen size={24} className="text-primary" />
-                          </div>
-                          <h3 className="text-2xl font-serif font-bold text-primary mb-3">{course.title}</h3>
-                          <p className="text-sm text-primary/60 leading-relaxed mb-6">{course.description}</p>
-                          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-secondary font-bold">
-                            Felfedezés <ChevronRight size={14} />
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-surface/50 border border-line rounded-[3rem] p-20 flex flex-col items-center justify-center text-center space-y-6">
-                      <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
-                        <BookOpen size={32} className="text-primary/20" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {COURSES.map(course => (
+                    <motion.div
+                      key={course.id}
+                      whileHover={{ y: -5 }}
+                      onClick={() => setSelectedCourse(course)}
+                      className="p-8 bg-surface border border-line rounded-[2.5rem] cursor-pointer group hover:border-primary/30 transition-all shadow-sm"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <BookOpen size={24} className="text-primary" />
                       </div>
-                      <div className="space-y-2">
-                        <h4 className="text-xl font-serif font-bold text-primary/40">Nincsenek elérhető kurzusok</h4>
-                        <p className="text-sm text-primary/30 max-w-xs">Jelentkezzen be adminisztrátorként az adatbázis feltöltéséhez.</p>
+                      <h3 className="text-2xl font-serif font-bold text-primary mb-3">{course.title}</h3>
+                      <p className="text-sm text-primary/60 leading-relaxed mb-6">{course.description}</p>
+                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-secondary font-bold">
+                        Felfedezés <ChevronRight size={14} />
                       </div>
-                    </div>
-                  )}
+                    </motion.div>
+                  ))}
                 </div>
               ) : !selectedLesson ? (
                 /* Module & Lesson Navigation */
@@ -1584,26 +1280,7 @@ export default function App() {
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histological Analysis</p>
                             </div>
                             <div className="markdown-body">
-                              <Markdown
-                                components={{
-                                  a: ({ node, ...props }) => {
-                                    if (props.href?.startsWith('annotation:')) {
-                                      const index = parseInt(props.href.split(':')[1]);
-                                      return (
-                                        <button
-                                          onClick={() => focusAnnotation(annotations[index], index)}
-                                          className="text-secondary font-bold hover:underline cursor-pointer inline-block"
-                                        >
-                                          {props.children}
-                                        </button>
-                                      );
-                                    }
-                                    return <a {...props} />;
-                                  }
-                                }}
-                              >
-                                {processedResult}
-                              </Markdown>
+                              <Markdown>{result}</Markdown>
                             </div>
                           </motion.div>
                         ) : activeTab === 'structures' ? (
