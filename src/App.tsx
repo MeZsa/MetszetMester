@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
@@ -262,6 +262,19 @@ export default function App() {
   const dragControls = useDragControls();
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePan = (direction: 'up' | 'down' | 'left' | 'right') => {
+    const step = 50 / zoom;
+    setPan(prev => {
+      switch (direction) {
+        case 'up': return { ...prev, y: prev.y + step };
+        case 'down': return { ...prev, y: prev.y - step };
+        case 'left': return { ...prev, x: prev.x + step };
+        case 'right': return { ...prev, x: prev.x - step };
+        default: return prev;
+      }
+    });
+  };
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.5, 5));
   const handleZoomOut = () => setZoom(prev => {
@@ -700,45 +713,83 @@ export default function App() {
                       </AnimatePresence>
                     </motion.div>
                     
-                    {/* Zoom Controls Overlay */}
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-surface/90 backdrop-blur-md rounded-full border border-line shadow-lg z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <button 
-                        onClick={handleZoomOut}
-                        className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                        title="Kicsinyítés"
-                      >
-                        <ZoomOut size={16} />
-                      </button>
-                      <div className="h-4 w-px bg-line mx-1" />
-                      <span className="text-[10px] font-mono font-bold text-primary min-w-[3ch] text-center">
-                        {Math.round(zoom * 100)}%
-                      </span>
-                      <div className="h-4 w-px bg-line mx-1" />
-                      <button 
-                        onClick={handleZoomIn}
-                        className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                        title="Nagyítás"
-                      >
-                        <ZoomIn size={16} />
-                      </button>
-                      <button 
-                        onClick={resetZoom}
-                        className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors ml-1"
-                        title="Alaphelyzet"
-                      >
-                        <Maximize size={16} />
-                      </button>
-                      <div className="h-4 w-px bg-line mx-1" />
-                      <button 
-                        onClick={() => setIsFloating(!isFloating)}
-                        className={cn(
-                          "p-2 rounded-full transition-all duration-300",
-                          isFloating ? "bg-primary text-white" : "hover:bg-primary/5 text-primary"
-                        )}
-                        title={isFloating ? "Dokkolás" : "Lebegő mód"}
-                      >
-                        {isFloating ? <Anchor size={16} /> : <Move size={16} />}
-                      </button>
+                    {/* Zoom & Pan Controls Overlay */}
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      {/* Pan Controls (D-Pad) */}
+                      <div className="flex flex-col items-center bg-surface/90 backdrop-blur-md p-2 rounded-full border border-line shadow-lg scale-90">
+                        <button 
+                          onClick={() => handlePan('up')}
+                          className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                          title="Felfelé mozgatás"
+                        >
+                          <ChevronUp size={14} />
+                        </button>
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={() => handlePan('left')}
+                            className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                            title="Balra mozgatás"
+                          >
+                            <ChevronLeft size={14} />
+                          </button>
+                          <div className="w-1 h-1 rounded-full bg-primary/20" />
+                          <button 
+                            onClick={() => handlePan('right')}
+                            className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                            title="Jobbra mozgatás"
+                          >
+                            <ChevronRight size={14} />
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => handlePan('down')}
+                          className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                          title="Lefelé mozgatás"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      </div>
+
+                      {/* Zoom Controls Bar */}
+                      <div className="flex items-center gap-2 p-2 bg-surface/90 backdrop-blur-md rounded-full border border-line shadow-lg">
+                        <button 
+                          onClick={handleZoomOut}
+                          className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                          title="Kicsinyítés"
+                        >
+                          <ZoomOut size={16} />
+                        </button>
+                        <div className="h-4 w-px bg-line mx-1" />
+                        <span className="text-[10px] font-mono font-bold text-primary min-w-[3ch] text-center">
+                          {Math.round(zoom * 100)}%
+                        </span>
+                        <div className="h-4 w-px bg-line mx-1" />
+                        <button 
+                          onClick={handleZoomIn}
+                          className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                          title="Nagyítás"
+                        >
+                          <ZoomIn size={16} />
+                        </button>
+                        <button 
+                          onClick={resetZoom}
+                          className="p-2 hover:bg-primary/5 rounded-full text-primary transition-colors ml-1"
+                          title="Alaphelyzet"
+                        >
+                          <Maximize size={16} />
+                        </button>
+                        <div className="h-4 w-px bg-line mx-1" />
+                        <button 
+                          onClick={() => setIsFloating(!isFloating)}
+                          className={cn(
+                            "p-2 rounded-full transition-all duration-300",
+                            isFloating ? "bg-primary text-white" : "hover:bg-primary/5 text-primary"
+                          )}
+                          title={isFloating ? "Dokkolás" : "Lebegő mód"}
+                        >
+                          {isFloating ? <Anchor size={16} /> : <Move size={16} />}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Sample Metadata Overlay */}
@@ -1077,35 +1128,56 @@ export default function App() {
                                     {quizQuestions[currentQuestionIndex].question}
                                   </h3>
 
-                                  <div className="grid grid-cols-1 gap-4">
-                                    {quizQuestions[currentQuestionIndex].options.map((option, idx) => {
-                                      const isSelected = userAnswers[currentQuestionIndex] === idx;
-                                      const isCorrect = idx === quizQuestions[currentQuestionIndex].correctAnswerIndex;
-                                      const showResult = quizFeedback !== null;
+                                    <div className="grid grid-cols-1 gap-4">
+                                      {quizQuestions[currentQuestionIndex].options.map((option, idx) => {
+                                        const isSelected = userAnswers[currentQuestionIndex] === idx;
+                                        const isCorrect = idx === quizQuestions[currentQuestionIndex].correctAnswerIndex;
+                                        const showResult = quizFeedback !== null;
 
-                                      return (
-                                        <button
-                                          key={idx}
-                                          disabled={showResult}
-                                          onClick={() => handleAnswer(idx)}
-                                          className={cn(
-                                            "p-5 rounded-2xl border-2 text-left transition-all duration-300 flex items-center justify-between group",
-                                            showResult 
-                                              ? isCorrect 
-                                                ? "bg-green-50 border-green-500 text-green-700"
-                                                : isSelected 
-                                                  ? "bg-red-50 border-red-500 text-red-700"
-                                                  : "bg-surface border-line opacity-40"
-                                              : "bg-surface border-line hover:border-primary/30 hover:bg-primary/5 text-primary"
-                                          )}
-                                        >
-                                          <span className="font-medium">{option}</span>
-                                          {showResult && isCorrect && <CheckCircle2 size={20} className="text-green-500" />}
-                                          {showResult && isSelected && !isCorrect && <XCircle size={20} className="text-red-500" />}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
+                                        return (
+                                          <motion.button
+                                            key={`${currentQuestionIndex}-${idx}`}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: idx * 0.1 }}
+                                            disabled={showResult}
+                                            onClick={() => handleAnswer(idx)}
+                                            className={cn(
+                                              "p-5 rounded-2xl border-2 text-left transition-all duration-300 flex items-center justify-between group",
+                                              showResult 
+                                                ? isCorrect 
+                                                  ? "bg-green-50 border-green-500 text-green-700"
+                                                  : isSelected 
+                                                    ? "bg-red-50 border-red-500 text-red-700"
+                                                    : "bg-surface border-line opacity-40"
+                                                : "bg-surface border-line hover:border-primary/30 hover:bg-primary/5 text-primary"
+                                            )}
+                                          >
+                                            <span className="font-medium">{option}</span>
+                                            <AnimatePresence>
+                                              {showResult && isCorrect && (
+                                                <motion.div
+                                                  initial={{ scale: 0, opacity: 0 }}
+                                                  animate={{ scale: 1, opacity: 1 }}
+                                                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                                                >
+                                                  <CheckCircle2 size={20} className="text-green-500" />
+                                                </motion.div>
+                                              )}
+                                              {showResult && isSelected && !isCorrect && (
+                                                <motion.div
+                                                  initial={{ scale: 0, opacity: 0 }}
+                                                  animate={{ scale: 1, opacity: 1 }}
+                                                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                                                >
+                                                  <XCircle size={20} className="text-red-500" />
+                                                </motion.div>
+                                              )}
+                                            </AnimatePresence>
+                                          </motion.button>
+                                        );
+                                      })}
+                                    </div>
 
                                   <AnimatePresence>
                                     {quizFeedback && (
@@ -1115,16 +1187,51 @@ export default function App() {
                                         exit={{ opacity: 0, height: 0 }}
                                         className="pt-6 border-t border-line space-y-6"
                                       >
-                                        <div className="flex gap-4 p-6 bg-primary/5 rounded-2xl">
-                                          <div className="p-2 bg-surface rounded-lg shadow-sm h-fit">
-                                            <Info size={20} className="text-primary" />
-                                          </div>
-                                          <div className="space-y-2">
-                                            <p className="text-sm font-bold text-primary">Magyarázat</p>
-                                            <p className="text-sm text-primary/70 leading-relaxed">
-                                              {quizQuestions[currentQuestionIndex].explanation}
-                                            </p>
-                                          </div>
+                                        <div className="space-y-4">
+                                          <motion.div 
+                                            initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            className={cn(
+                                              "flex items-center gap-3 p-4 rounded-2xl border",
+                                              userAnswers[currentQuestionIndex] === quizQuestions[currentQuestionIndex].correctAnswerIndex
+                                                ? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
+                                                : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400"
+                                            )}
+                                          >
+                                            <motion.div
+                                              initial={{ scale: 0, rotate: -45 }}
+                                              animate={{ scale: 1, rotate: 0 }}
+                                              transition={{ type: "spring", stiffness: 400, damping: 15, delay: 0.1 }}
+                                            >
+                                              {userAnswers[currentQuestionIndex] === quizQuestions[currentQuestionIndex].correctAnswerIndex ? (
+                                                <CheckCircle2 size={24} />
+                                              ) : (
+                                                <XCircle size={24} />
+                                              )}
+                                            </motion.div>
+                                            <span className="font-serif text-lg font-bold">
+                                              {userAnswers[currentQuestionIndex] === quizQuestions[currentQuestionIndex].correctAnswerIndex 
+                                                ? "Kiváló! Helyes válasz." 
+                                                : "Sajnos ez nem talált."}
+                                            </span>
+                                          </motion.div>
+
+                                          <motion.div 
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.3 }}
+                                            className="flex gap-4 p-6 bg-primary/5 rounded-2xl border border-primary/5"
+                                          >
+                                            <div className="p-2 bg-surface rounded-lg shadow-sm h-fit">
+                                              <Info size={20} className="text-primary" />
+                                            </div>
+                                            <div className="space-y-2">
+                                              <p className="text-sm font-bold text-primary">Szakmai Magyarázat</p>
+                                              <p className="text-sm text-primary/70 leading-relaxed">
+                                                {quizQuestions[currentQuestionIndex].explanation}
+                                              </p>
+                                            </div>
+                                          </motion.div>
                                         </div>
 
                                         <div className="flex justify-end">

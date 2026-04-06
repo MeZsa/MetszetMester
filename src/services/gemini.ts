@@ -113,8 +113,13 @@ export async function generateHistologyQuiz(base64Image: string, mimeType: strin
     Annotációk:
     ${JSON.stringify(analysis.annotations)}
     
-    A kvíz célja a hallgatók tudásának tesztelése. A kérdések vonatkozhatnak a struktúrák azonosítására, funkciójukra vagy a képen látható jellegzetességekre.
-    Minden kérdéshez adj 4 opciót, jelöld meg a helyes választ, és adj egy rövid magyarázatot.
+    A kvíz célja a hallgatók mélyebb megértésének tesztelése. 
+    FONTOS: Ne csak azonosításra kérdezz rá! A kérdések legalább 60%-a vonatkozzon a következőkre:
+    1. **Funkcionális összefüggések**: Hogyan szolgálja az adott struktúra felépítése annak élettani feladatát?
+    2. **Klinikai relevanciák**: Milyen kóros állapotokhoz vagy tünetekhez vezethet az adott szöveti elem károsodása?
+    3. **Differenciáldiagnosztika**: Milyen más szövettani képpel téveszthető össze, és mi a különbség?
+    
+    Minden kérdéshez adj 4 opciót, jelöld meg a helyes választ, és adj egy részletes szakmai magyarázatot.
     Ha egy kérdés egy konkrét annotációra vonatkozik, add meg annak az indexét az 'annotationRef' mezőben.
   `;
 
