@@ -81,11 +81,11 @@
   .micro-corners::after { @apply bottom-6 right-6 border-b-2 border-r-2 rounded-br-lg; }
 
   .elegant-title {
-    @apply font-serif font-bold tracking-tight text-primary;
-    background: linear-gradient(to bottom right, var(--deep-blue), var(--med-blue));
+    @apply font-serif italic font-semibold tracking-tighter;
+    background: linear-gradient(135deg, var(--deep-blue) 0%, var(--med-blue) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 4px var(--shadow-color));
+    filter: drop-shadow(0 4px 12px rgba(31, 58, 95, 0.15));
   }
 
   .preserve-3d {

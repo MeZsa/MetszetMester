@@ -677,7 +677,8 @@ export default function App() {
                   {COURSES.map(course => (
                     <motion.div
                       key={course.id}
-                      whileHover={{ y: -5 }}
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedCourse(course)}
                       className="p-8 bg-surface border border-line rounded-[2.5rem] cursor-pointer group hover:border-primary/30 transition-all shadow-sm"
                     >
@@ -714,8 +715,10 @@ export default function App() {
                           </div>
                           <div className="space-y-1 pl-2">
                             {module.lessons.map(lesson => (
-                              <button
+                              <motion.button
                                 key={lesson.id}
+                                whileHover={{ x: 4, scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
                                 onClick={() => {
                                   setSelectedModule(module);
                                   setSelectedLesson(lesson);
@@ -724,7 +727,7 @@ export default function App() {
                               >
                                 <span className="text-primary/80 group-hover:text-primary">{lesson.title}</span>
                                 <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </button>
+                              </motion.button>
                             ))}
                           </div>
                         </div>
