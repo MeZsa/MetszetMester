@@ -367,7 +367,7 @@ const COURSES: Course[] = [
 ];
 
 export default function App() {
-  const [view, setView] = useState<'main' | 'courses'>('main');
+  const [view, setView] = useState<'main' | 'courses' | 'clinical'>('main');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -686,7 +686,53 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 px-6 py-12 md:py-20 relative flex flex-col items-center justify-center">
         <div className="max-w-7xl mx-auto w-full">
-          {view === 'courses' ? (
+          {view === 'clinical' ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full max-w-6xl mx-auto"
+            >
+              <div className="flex items-center justify-between mb-12">
+                <button 
+                  onClick={() => setView('main')}
+                  className="text-xs font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
+                >
+                  <ArrowLeft size={14} /> Vissza a főoldalra
+                </button>
+              </div>
+
+              <div className="bg-surface border border-line rounded-[3rem] p-12 md:p-20 shadow-sm space-y-12">
+                <div className="space-y-6 max-w-3xl">
+                  <div className="flex items-center gap-4 text-secondary">
+                    <div className="p-3 bg-secondary/10 rounded-2xl">
+                      <FileText size={32} />
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-serif font-bold text-primary">Klinikai Gondolkodás</h2>
+                  </div>
+                  <div className="h-1 w-24 bg-secondary rounded-full" />
+                  <p className="text-xl md:text-2xl font-serif text-primary/80 leading-relaxed italic">
+                    "Ez a modul a tünetek mögötti lehetséges okok és patofiziológiai összefüggések megértését segíti, oktatási céllal."
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 space-y-4">
+                    <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-primary">A modul célja</h4>
+                    <p className="text-sm text-primary/70 leading-relaxed">
+                      A szövettani elváltozások és a klinikai tünetek közötti híd megteremtése. Segítünk értelmezni, hogy a mikroszkóp alatt látott képletek hogyan nyilvánulnak meg a beteg állapotában.
+                    </p>
+                  </div>
+                  <div className="p-8 bg-secondary/5 rounded-[2.5rem] border border-secondary/10 space-y-4">
+                    <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-secondary">Hamarosan érkezik</h4>
+                    <p className="text-sm text-primary/70 leading-relaxed">
+                      Folyamatosan dolgozunk az esetleírások és a patofiziológiai magyarázatok integrálásán, hogy még átfogóbb tudást nyújthassunk.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : view === 'courses' ? (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -1061,7 +1107,12 @@ export default function App() {
                     <BookOpen size={14} />
                   </motion.div> KURZUSOK
                 </button>
-                <span className="flex items-center gap-2"><FileText size={14} /> Klinikai Gondolkodás</span>
+                <button 
+                  onClick={() => setView('clinical')}
+                  className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <span className="flex items-center gap-2"><FileText size={14} /> Klinikai Gondolkodás</span>
+                </button>
               </div>
             </motion.div>
           ) : (
