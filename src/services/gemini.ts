@@ -22,6 +22,7 @@ Adjon meg maximum 5 lehetséges klinikai okot/differenciáldiagnózist a látott
 - A "rovid_magyarazat" legyen tömör (1-2 mondat).
 - A "patofiziologia" magyarázza el, miért alakulnak ki a tünetek/elváltozások.
 - A "kulonbseg" mező mutassa be, miben tér el más lehetőségektől.
+- A "gondolkodasi_lepes" mező röviden írja le, hogyan szűkítette a lehetőségeket a látott szövettani kép alapján.
 
 STÍLUS: Tömör, szakmai, oktató jellegű, felesleges szöveg nélkül.
 
@@ -44,6 +45,7 @@ export interface ClinicalCause {
   rovid_magyarazat: string;
   patofiziologia: string;
   kulonbseg: string;
+  gondolkodasi_lepes: string;
 }
 
 export interface HistologyAnalysisResponse {
@@ -110,9 +112,10 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
                   nev: { type: Type.STRING },
                   rovid_magyarazat: { type: Type.STRING },
                   patofiziologia: { type: Type.STRING },
-                  kulonbseg: { type: Type.STRING }
+                  kulonbseg: { type: Type.STRING },
+                  gondolkodasi_lepes: { type: Type.STRING }
                 },
-                required: ["nev", "rovid_magyarazat", "patofiziologia", "kulonbseg"]
+                required: ["nev", "rovid_magyarazat", "patofiziologia", "kulonbseg", "gondolkodasi_lepes"]
               }
             }
           },

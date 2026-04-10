@@ -759,6 +759,12 @@ export default function App() {
                                   {cause.kulonbseg}
                                 </p>
                               </div>
+                              <div className="space-y-2 pt-2 border-t border-line/50">
+                                <h4 className="text-[10px] font-mono uppercase tracking-widest text-secondary/60">Gondolkodási lépés</h4>
+                                <p className="text-sm text-primary/70 leading-relaxed italic">
+                                  {cause.gondolkodasi_lepes}
+                                </p>
+                              </div>
                             </div>
                           </motion.div>
                         ))}
