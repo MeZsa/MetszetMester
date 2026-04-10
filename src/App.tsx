@@ -485,6 +485,47 @@ export default function App() {
     }
   };
 
+  const [lessonZoom, setLessonZoom] = useState(1);
+  const [lessonPan, setLessonPan] = useState({ x: 0, y: 0 });
+  const lessonContainerRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setLessonZoom(1);
+    setLessonPan({ x: 0, y: 0 });
+  }, [selectedLesson]);
+
+  const handleLessonPan = (direction: 'up' | 'down' | 'left' | 'right') => {
+    const step = 50 / lessonZoom;
+    setLessonPan(prev => {
+      switch (direction) {
+        case 'up': return { ...prev, y: prev.y + step };
+        case 'down': return { ...prev, y: prev.y - step };
+        case 'left': return { ...prev, x: prev.x + step };
+        case 'right': return { ...prev, x: prev.x - step };
+        default: return prev;
+      }
+    });
+  };
+
+  const handleLessonZoomIn = () => setLessonZoom(prev => Math.min(prev + 0.5, 5));
+  const handleLessonZoomOut = () => setLessonZoom(prev => {
+    const newZoom = Math.max(prev - 0.5, 1);
+    if (newZoom === 1) setLessonPan({ x: 0, y: 0 });
+    return newZoom;
+  });
+  const resetLessonZoom = () => {
+    setLessonZoom(1);
+    setLessonPan({ x: 0, y: 0 });
+  };
+
+  const handleLessonWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) handleLessonZoomIn();
+      else handleLessonZoomOut();
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -683,7 +724,12 @@ export default function App() {
                       className="p-8 bg-surface border border-line rounded-[2.5rem] cursor-pointer group hover:border-primary/30 transition-all shadow-sm"
                     >
                       <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <BookOpen size={24} className="text-primary" />
+                        <motion.div
+                          animate={{ scale: [1, 1.15, 1] }}
+                          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <BookOpen size={24} className="text-primary" />
+                        </motion.div>
                       </div>
                       <h3 className="text-2xl font-serif font-bold text-primary mb-3">{course.title}</h3>
                       <p className="text-sm text-primary/60 leading-relaxed mb-6">{course.description}</p>
@@ -800,24 +846,110 @@ export default function App() {
                           <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest font-bold text-secondary">
                             <Microscope size={14} /> Interaktív Mikroszkóp
                           </div>
-                          <div className="aspect-square bg-surface border border-line rounded-[3rem] overflow-hidden relative group shadow-xl">
+                          <div 
+                            ref={lessonContainerRef}
+                            onWheel={handleLessonWheel}
+                            className="aspect-square bg-surface border border-line rounded-[3rem] overflow-hidden relative group shadow-xl"
+                          >
                             <motion.div 
                               className="w-full h-full relative cursor-grab active:cursor-grabbing"
-                              whileHover={{ scale: 1.1 }}
-                              transition={{ duration: 0.5 }}
+                              animate={{ 
+                                scale: lessonZoom,
+                                x: lessonPan.x,
+                                y: lessonPan.y
+                              }}
+                              drag={lessonZoom > 1}
+                              dragConstraints={lessonContainerRef}
+                              onDragEnd={(_, info) => {
+                                setLessonPan(prev => ({
+                                  x: prev.x + info.offset.x,
+                                  y: prev.y + info.offset.y
+                                }));
+                              }}
+                              dragElastic={0.1}
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             >
                               <img 
                                 src={selectedLesson.microscopeImage} 
                                 alt="Microscope" 
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover pointer-events-none"
                                 referrerPolicy="no-referrer"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-8">
-                                <span className="text-[10px] font-mono uppercase tracking-widest text-white font-bold bg-black/40 backdrop-blur-md px-4 py-2 rounded-full">
-                                  Virtuális Metszet
-                                </span>
-                              </div>
                             </motion.div>
+                            
+                            {/* Zoom & Pan Controls Overlay */}
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                              {/* Pan Controls (D-Pad) */}
+                              <div className="flex flex-col items-center bg-surface/90 backdrop-blur-md p-1.5 rounded-full border border-line shadow-lg scale-75 origin-bottom">
+                                <button 
+                                  onClick={() => handleLessonPan('up')}
+                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                                  title="Felfelé mozgatás"
+                                >
+                                  <ChevronUp size={14} />
+                                </button>
+                                <div className="flex items-center gap-2">
+                                  <button 
+                                    onClick={() => handleLessonPan('left')}
+                                    className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                                    title="Balra mozgatás"
+                                  >
+                                    <ChevronLeft size={14} />
+                                  </button>
+                                  <div className="w-1 h-1 rounded-full bg-primary/20" />
+                                  <button 
+                                    onClick={() => handleLessonPan('right')}
+                                    className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                                    title="Jobbra mozgatás"
+                                  >
+                                    <ChevronRight size={14} />
+                                  </button>
+                                </div>
+                                <button 
+                                  onClick={() => handleLessonPan('down')}
+                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                                  title="Lefelé mozgatás"
+                                >
+                                  <ChevronDown size={14} />
+                                </button>
+                              </div>
+
+                              {/* Zoom Controls Bar */}
+                              <div className="flex items-center gap-1 p-1.5 bg-surface/90 backdrop-blur-md rounded-full border border-line shadow-lg scale-90">
+                                <button 
+                                  onClick={handleLessonZoomOut}
+                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                                  title="Kicsinyítés"
+                                >
+                                  <ZoomOut size={14} />
+                                </button>
+                                <div className="h-3 w-px bg-line mx-1" />
+                                <span className="text-[9px] font-mono font-bold text-primary min-w-[3ch] text-center">
+                                  {Math.round(lessonZoom * 100)}%
+                                </span>
+                                <div className="h-3 w-px bg-line mx-1" />
+                                <button 
+                                  onClick={handleLessonZoomIn}
+                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
+                                  title="Nagyítás"
+                                >
+                                  <ZoomIn size={14} />
+                                </button>
+                                <button 
+                                  onClick={resetLessonZoom}
+                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors ml-0.5"
+                                  title="Alaphelyzet"
+                                >
+                                  <Maximize size={14} />
+                                </button>
+                              </div>
+                            </div>
+                            
+                            <div className="absolute top-4 left-4 pointer-events-none">
+                              <span className="text-[9px] font-mono uppercase tracking-widest text-white font-bold bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full">
+                                Virtuális Metszet
+                              </span>
+                            </div>
                           </div>
                           <p className="text-xs text-primary/40 italic text-center px-8 leading-relaxed">
                             A fenti ablakban a leckéhez kapcsolódó reprezentatív metszetet láthatja.
@@ -888,7 +1020,7 @@ export default function App() {
               </div>
 
               <h2 className="text-2xl md:text-3xl font-serif font-light mb-12 tracking-tight text-primary/80 max-w-2xl leading-relaxed">
-                Fedezze fel a mikroszkópos világot egy digitális tanársegéd segítségével.
+                Fedezze fel a mikroszkópos világot egy digitális asszisztens segítségével.
               </h2>
 
               {/* Centered Upload Area */}
@@ -922,9 +1054,14 @@ export default function App() {
                   onClick={() => setView('courses')}
                   className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
                 >
-                  <BookOpen size={14} /> KURZUSOK
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <BookOpen size={14} />
+                  </motion.div> KURZUSOK
                 </button>
-                <span className="flex items-center gap-2"><FileText size={14} /> Academic Analysis</span>
+                <span className="flex items-center gap-2"><FileText size={14} /> Klinikai Gondolkodás</span>
               </div>
             </motion.div>
           ) : (
