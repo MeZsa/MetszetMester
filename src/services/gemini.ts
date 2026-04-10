@@ -16,6 +16,15 @@ Az elemzés során kövesse az alábbi szigorú struktúrát a 'report' mezőben
 4. **Extracelluláris mátrix**: Rostok, alapállomány.
 5. **Klinikai korreláció**: Élettani szerep és patológia.
 
+KLINIKAI GONDOLKODÁS MODUL:
+Adjon meg maximum 5 lehetséges klinikai okot/differenciáldiagnózist a látott kép alapján.
+- A "nev" mezőben általánosan elfogadott orvosi megnevezés legyen.
+- A "rovid_magyarazat" legyen tömör (1-2 mondat).
+- A "patofiziologia" magyarázza el, miért alakulnak ki a tünetek/elváltozások.
+- A "kulonbseg" mező mutassa be, miben tér el más lehetőségektől.
+
+STÍLUS: Tömör, szakmai, oktató jellegű, felesleges szöveg nélkül.
+
 ANNOTÁCIÓK:
 Azonosítsa a legfontosabb szövettani struktúrákat a képen, és adjon meg hozzájuk pontos koordinátákat [ymin, xmin, ymax, xmax] formátumban (0-1000 skálán).
 Csak a legfontosabb 3-6 struktúrát jelölje meg.
@@ -30,9 +39,17 @@ export interface HistologyAnnotation {
   xmax: number;
 }
 
+export interface ClinicalCause {
+  nev: string;
+  rovid_magyarazat: string;
+  patofiziologia: string;
+  kulonbseg: string;
+}
+
 export interface HistologyAnalysisResponse {
   report: string;
   annotations: HistologyAnnotation[];
+  clinicalCauses: ClinicalCause[];
 }
 
 export interface HistologyQuizQuestion {
@@ -83,9 +100,23 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
                 },
                 required: ["label", "ymin", "xmin", "ymax", "xmax"]
               }
+            },
+            clinicalCauses: {
+              type: Type.ARRAY,
+              description: "Maximum 5 lehetséges klinikai ok.",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  nev: { type: Type.STRING },
+                  rovid_magyarazat: { type: Type.STRING },
+                  patofiziologia: { type: Type.STRING },
+                  kulonbseg: { type: Type.STRING }
+                },
+                required: ["nev", "rovid_magyarazat", "patofiziologia", "kulonbseg"]
+              }
             }
           },
-          required: ["report", "annotations"]
+          required: ["report", "annotations", "clinicalCauses"]
         }
       }
     });
@@ -93,7 +124,8 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
     const result = JSON.parse(response.text || "{}");
     return {
       report: result.report || "Sajnos nem sikerült részletes jelentést készíteni.",
-      annotations: result.annotations || []
+      annotations: result.annotations || [],
+      clinicalCauses: result.clinicalCauses || []
     };
   } catch (error) {
     console.error("Gemini API Error:", error);

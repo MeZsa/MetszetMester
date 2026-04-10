@@ -8,7 +8,7 @@ import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, Zoom
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
-import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion } from './services/gemini';
+import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause } from './services/gemini';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -190,6 +190,7 @@ interface AnalysisResult {
   image: string;
   text: string;
   annotations: HistologyAnnotation[];
+  clinicalCauses: ClinicalCause[];
   timestamp: Date;
 }
 
@@ -387,6 +388,7 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<HistologyAnnotation[]>([]);
+  const [clinicalCauses, setClinicalCauses] = useState<ClinicalCause[]>([]);
   const [hoveredAnnotationIndex, setHoveredAnnotationIndex] = useState<number | null>(null);
   const [selectedAnnotationIndex, setSelectedAnnotationIndex] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -553,17 +555,20 @@ export default function App() {
   const startAnalysis = async (base64: string, mimeType: string) => {
     setIsAnalyzing(true);
     setAnnotations([]);
+    setClinicalCauses([]);
     setResult(null);
     setActiveTab('report');
     try {
       const response = await analyzeHistologyImage(base64, mimeType);
       setResult(response.report);
       setAnnotations(response.annotations);
+      setClinicalCauses(response.clinicalCauses);
       const newResult: AnalysisResult = {
         id: Math.random().toString(36).substr(2, 9),
         image: base64,
         text: response.report,
         annotations: response.annotations,
+        clinicalCauses: response.clinicalCauses,
         timestamp: new Date(),
       };
       setHistory(prev => [newResult, ...prev]);
@@ -584,6 +589,7 @@ export default function App() {
     setImage(null);
     setResult(null);
     setAnnotations([]);
+    setClinicalCauses([]);
     setSelectedAnnotationIndex(null);
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -594,6 +600,7 @@ export default function App() {
     setImage(item.image);
     setResult(item.text);
     setAnnotations(item.annotations);
+    setClinicalCauses(item.clinicalCauses || []);
     setActiveTab('report');
     setError(null);
   };
@@ -609,7 +616,7 @@ export default function App() {
     setQuizFeedback(null);
     
     try {
-      const quizResponse = await generateHistologyQuiz(image, 'image/jpeg', { report: result, annotations });
+      const quizResponse = await generateHistologyQuiz(image, 'image/jpeg', { report: result, annotations, clinicalCauses });
       setQuizQuestions(quizResponse.questions);
     } catch (err: any) {
       setError(err.message || 'Hiba történt a kvíz generálása során.');
@@ -716,19 +723,63 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 space-y-4">
-                    <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-primary">A modul célja</h4>
-                    <p className="text-sm text-primary/70 leading-relaxed">
-                      A szövettani elváltozások és a klinikai tünetek közötti híd megteremtése. Segítünk értelmezni, hogy a mikroszkóp alatt látott képletek hogyan nyilvánulnak meg a beteg állapotában.
-                    </p>
-                  </div>
-                  <div className="p-8 bg-secondary/5 rounded-[2.5rem] border border-secondary/10 space-y-4">
-                    <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-secondary">Hamarosan érkezik</h4>
-                    <p className="text-sm text-primary/70 leading-relaxed">
-                      Folyamatosan dolgozunk az esetleírások és a patofiziológiai magyarázatok integrálásán, hogy még átfogóbb tudást nyújthassunk.
-                    </p>
-                  </div>
+                <div className="grid grid-cols-1 gap-8">
+                  {clinicalCauses.length > 0 ? (
+                    <div className="space-y-8">
+                      <div className="flex items-center gap-3 px-6 py-3 bg-secondary/10 rounded-2xl w-fit">
+                        <Brain size={20} className="text-secondary" />
+                        <span className="text-sm font-mono uppercase tracking-widest font-bold text-secondary">Differenciáldiagnosztikai javaslatok</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {clinicalCauses.map((cause, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="p-8 bg-surface border border-line rounded-[2.5rem] hover:border-secondary/30 transition-all group"
+                          >
+                            <div className="space-y-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <h3 className="text-xl font-serif font-bold text-primary group-hover:text-secondary transition-colors">{cause.nev}</h3>
+                                <span className="text-[10px] font-mono bg-primary/5 px-2 py-1 rounded text-primary/40">#{idx + 1}</span>
+                              </div>
+                              <p className="text-sm text-primary/80 font-medium leading-relaxed italic border-l-2 border-secondary/30 pl-4">
+                                {cause.rovid_magyarazat}
+                              </p>
+                              <div className="space-y-2">
+                                <h4 className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Patofiziológia</h4>
+                                <p className="text-sm text-primary/60 leading-relaxed">
+                                  {cause.patofiziologia}
+                                </p>
+                              </div>
+                              <div className="space-y-2">
+                                <h4 className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Differenciálás</h4>
+                                <p className="text-sm text-primary/60 leading-relaxed">
+                                  {cause.kulonbseg}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 space-y-4">
+                        <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-primary">A modul célja</h4>
+                        <p className="text-sm text-primary/70 leading-relaxed">
+                          A szövettani elváltozások és a klinikai tünetek közötti híd megteremtése. Segítünk értelmezni, hogy a mikroszkóp alatt látott képletek hogyan nyilvánulnak meg a beteg állapotában.
+                        </p>
+                      </div>
+                      <div className="p-8 bg-secondary/5 rounded-[2.5rem] border border-secondary/10 space-y-4">
+                        <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-secondary">Hogyan használja?</h4>
+                        <p className="text-sm text-primary/70 leading-relaxed">
+                          Töltsön fel egy szövettani metszetet a főoldalon, végezze el az elemzést, majd térjen vissza ide a klinikai összefüggések megtekintéséhez.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
