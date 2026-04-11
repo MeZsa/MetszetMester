@@ -8,7 +8,7 @@ import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, Zoom
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
-import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause } from './services/gemini';
+import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause, interpretMedicalReport, ReportInterpretationResponse } from './services/gemini';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -408,6 +408,25 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Report Interpreter State
+  const [reportText, setReportText] = useState('');
+  const [isInterpreting, setIsInterpreting] = useState(false);
+  const [interpretationResult, setInterpretationResult] = useState<ReportInterpretationResponse | null>(null);
+
+  const handleInterpretReport = async () => {
+    if (!reportText.trim()) return;
+    setIsInterpreting(true);
+    setError(null);
+    try {
+      const result = await interpretMedicalReport(reportText);
+      setInterpretationResult(result);
+    } catch (err: any) {
+      setError(err.message || 'Hiba történt a lelet értelmezése során.');
+    } finally {
+      setIsInterpreting(false);
+    }
+  };
+
   const processedResult = React.useMemo(() => {
     if (!result || !annotations.length) return result;
     
@@ -722,43 +741,53 @@ export default function App() {
                     "Oktatási célú leletértelmező modul."
                   </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Important Rules Section */}
-                  <div className="p-8 bg-red-500/5 rounded-[2.5rem] border border-red-500/20 space-y-6">
-                    <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
-                      <AlertTriangle size={24} />
-                      <h4 className="text-sm font-mono uppercase tracking-widest font-bold">Nagyon fontos szabályok</h4>
-                    </div>
-                    <ul className="space-y-4">
-                      <li className="flex items-center gap-3 text-base text-primary/80 font-medium">
-                        <span className="text-xl">❗</span>
-                        nem ad diagnózist
-                      </li>
-                      <li className="flex items-center gap-3 text-base text-primary/80 font-medium">
-                        <span className="text-xl">❗</span>
-                        nem ad kezelési javaslatot
-                      </li>
-                      <li className="flex items-center gap-3 text-base text-primary/80 font-medium">
-                        <span className="text-xl">❗</span>
-                        oktatási cél
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* Related Concepts Section */}
-                  <div className="p-8 bg-secondary/5 rounded-[2.5rem] border border-secondary/10 space-y-6">
-                    <div className="flex items-center gap-3 text-secondary">
-                      <BookOpen size={24} />
-                      <h4 className="text-sm font-mono uppercase tracking-widest font-bold">Kapcsolódó fogalom</h4>
-                    </div>
-                    <div className="p-6 bg-surface rounded-2xl border border-line shadow-sm">
-                      <p className="text-xl font-serif font-bold text-primary">orvosi terminológia</p>
-                      <p className="text-sm text-primary/60 mt-3 leading-relaxed">
-                        A leletek értelmezése során a szakszavak pontos jelentésének megismerése a cél.
-                      </p>
-                    </div>
-                  </div>
+                
+                <div className="space-y-6">
+                  <textarea
+                    value={reportText}
+                    onChange={(e) => setReportText(e.target.value)}
+                    placeholder="Másolja be ide a lelet szövegét..."
+                    className="w-full h-48 p-6 bg-primary/5 border border-primary/10 rounded-3xl resize-none focus:outline-none focus:ring-2 focus:ring-secondary/50 text-primary placeholder:text-primary/30"
+                  />
+                  <button
+                    onClick={handleInterpretReport}
+                    disabled={isInterpreting || !reportText.trim()}
+                    className="flex items-center gap-2 px-8 py-4 bg-secondary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-secondary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isInterpreting ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+                    {isInterpreting ? 'Értelmezés folyamatban...' : 'Lelet értelmezése'}
+                  </button>
                 </div>
+
+                {interpretationResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-8 pt-8 border-t border-line"
+                  >
+                    <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 text-red-700 dark:text-red-400">
+                      <AlertTriangle size={24} className="shrink-0 mt-1" />
+                      <p className="text-sm font-medium leading-relaxed">{interpretationResult.disclaimer}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-serif font-bold text-primary">Általános összefoglaló</h3>
+                      <p className="text-primary/80 leading-relaxed">{interpretationResult.summary}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-serif font-bold text-primary">Orvosi terminológia magyarázata</h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {interpretationResult.terms.map((term, idx) => (
+                          <div key={idx} className="p-6 bg-surface border border-line rounded-2xl space-y-2">
+                            <h4 className="font-bold text-secondary">{term.term}</h4>
+                            <p className="text-sm text-primary/70 leading-relaxed">{term.explanation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           ) : view === 'clinical' ? (
