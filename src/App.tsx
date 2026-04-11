@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
 import { cn } from './lib/utils';
@@ -368,7 +368,7 @@ const COURSES: Course[] = [
 ];
 
 export default function App() {
-  const [view, setView] = useState<'main' | 'courses' | 'clinical'>('main');
+  const [view, setView] = useState<'main' | 'courses' | 'clinical' | 'report_interpreter'>('main');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -693,7 +693,75 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 px-6 py-12 md:py-20 relative flex flex-col items-center justify-center">
         <div className="max-w-7xl mx-auto w-full">
-          {view === 'clinical' ? (
+          {view === 'report_interpreter' ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full max-w-6xl mx-auto"
+            >
+              <div className="flex items-center justify-between mb-12">
+                <button 
+                  onClick={() => setView('main')}
+                  className="text-xs font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
+                >
+                  <ArrowLeft size={14} /> Vissza a főoldalra
+                </button>
+              </div>
+
+              <div className="bg-surface border border-line rounded-[3rem] p-12 md:p-20 shadow-sm space-y-12">
+                <div className="space-y-6 max-w-3xl">
+                  <div className="flex items-center gap-4 text-secondary">
+                    <div className="p-3 bg-secondary/10 rounded-2xl">
+                      <FileText size={32} />
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-serif font-bold text-primary">Leletértelmező</h2>
+                  </div>
+                  <div className="h-1 w-24 bg-secondary rounded-full" />
+                  <p className="text-xl md:text-2xl font-serif text-primary/80 leading-relaxed italic">
+                    "Oktatási célú leletértelmező modul."
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Important Rules Section */}
+                  <div className="p-8 bg-red-500/5 rounded-[2.5rem] border border-red-500/20 space-y-6">
+                    <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                      <AlertTriangle size={24} />
+                      <h4 className="text-sm font-mono uppercase tracking-widest font-bold">Nagyon fontos szabályok</h4>
+                    </div>
+                    <ul className="space-y-4">
+                      <li className="flex items-center gap-3 text-base text-primary/80 font-medium">
+                        <span className="text-xl">❗</span>
+                        nem ad diagnózist
+                      </li>
+                      <li className="flex items-center gap-3 text-base text-primary/80 font-medium">
+                        <span className="text-xl">❗</span>
+                        nem ad kezelési javaslatot
+                      </li>
+                      <li className="flex items-center gap-3 text-base text-primary/80 font-medium">
+                        <span className="text-xl">❗</span>
+                        oktatási cél
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Related Concepts Section */}
+                  <div className="p-8 bg-secondary/5 rounded-[2.5rem] border border-secondary/10 space-y-6">
+                    <div className="flex items-center gap-3 text-secondary">
+                      <BookOpen size={24} />
+                      <h4 className="text-sm font-mono uppercase tracking-widest font-bold">Kapcsolódó fogalom</h4>
+                    </div>
+                    <div className="p-6 bg-surface rounded-2xl border border-line shadow-sm">
+                      <p className="text-xl font-serif font-bold text-primary">orvosi terminológia</p>
+                      <p className="text-sm text-primary/60 mt-3 leading-relaxed">
+                        A leletek értelmezése során a szakszavak pontos jelentésének megismerése a cél.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : view === 'clinical' ? (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1169,6 +1237,12 @@ export default function App() {
                   className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
                 >
                   <span className="flex items-center gap-2"><FileText size={14} /> Klinikai Gondolkodás</span>
+                </button>
+                <button 
+                  onClick={() => setView('report_interpreter')}
+                  className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <span className="flex items-center gap-2"><FileText size={14} /> Leletértelmező (oktatási mód)</span>
                 </button>
               </div>
             </motion.div>
