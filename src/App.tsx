@@ -1518,6 +1518,25 @@ export default function App() {
                 </div>
               </div>
 
+              {/* About the Creator */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 1 }}
+                className="mt-16 max-w-3xl mx-auto text-center space-y-6 relative px-6"
+              >
+                <div className="absolute left-1/2 -top-8 -translate-x-1/2 w-12 h-px bg-primary/20" />
+                <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed">
+                  Mékli Zsuzsanna vagyok, a metszetek megértése és az azokhoz kapcsolódó gondolkodási folyamatok fejlesztése iránt elkötelezett szakember.
+                </p>
+                <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed">
+                  Az oktatóprogramot azért hoztam létre, mert a metszetek területén kevés olyan tananyag érhető el, amely segítené az összefüggések felismerését és a szemléletalapú tanulást.
+                </p>
+                <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed italic">
+                  A célom nem a diagnosztizálás, hanem annak gyakorlása, hogyan lehet a metszetekre rendszerszinten gondolni.
+                </p>
+              </motion.div>
+
               {/* Minimal Footer Info */}
               <div className="mt-16 md:mt-24 flex gap-12 opacity-20 font-mono text-[10px] uppercase tracking-[0.3em] font-bold">
                 <button 
