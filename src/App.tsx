@@ -1527,13 +1527,13 @@ export default function App() {
               >
                 <div className="absolute left-1/2 -top-8 -translate-x-1/2 w-12 h-px bg-primary/20" />
                 <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed">
-                  Mékli Zsuzsanna vagyok, a metszetek megértése és az azokhoz kapcsolódó gondolkodási folyamatok fejlesztése iránt elkötelezett szakember.
+                  Mékli Zsuzsanna vagyok, egészségügyi alapvégzettséggel és informatikai ismeretekkel.
                 </p>
                 <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed">
-                  Az oktatóprogramot azért hoztam létre, mert a metszetek területén kevés olyan tananyag érhető el, amely segítené az összefüggések felismerését és a szemléletalapú tanulást.
+                  Az oktatóprogramot azért hoztam létre, mert a szövettani metszetek területén kevés olyan tananyag érhető el, amely segítené az összefüggések felismerését és a szemléletalapú tanulást. Mondhatnánk azt is, hogy képes szövettani gyakorlat.
                 </p>
                 <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed italic">
-                  A célom nem a diagnosztizálás, hanem annak gyakorlása, hogyan lehet a metszetekre rendszerszinten gondolni.
+                  A célom nem a diagnosztizálás, hanem a szövettani struktúrák készségszintű felismerésének fejlesztése.
                 </p>
               </motion.div>
 
