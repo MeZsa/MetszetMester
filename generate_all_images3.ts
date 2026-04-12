@@ -1,0 +1,61 @@
+import { GoogleGenAI } from "@google/genai";
+import fs from "fs";
+import path from "path";
+
+const topics = [
+  { id: 'mirigyhamok', prompt: 'Téma: Mirigyhámok és speciális formák (Glandular epithelium, pseudostratified).' },
+  { id: 'kotoszovet', prompt: 'Téma: Kötőszövetek (Connective tissue).' }
+];
+
+const basePrompt = `Oktatási célú hisztológiai kép generálása.
+A kép klasszikus hisztológiai metszetet ábrázoljon H&E festéssel,
+közepes nagyításon, tanulási és felismerési célra.
+A hangsúly a szövettani struktúra vizuális megfigyelésén legyen.
+Ne tartalmazzon feliratokat, nyilakat, annotációkat vagy diagnosztikai értelmezést.
+A kép alkalmas legyen a struktúrák készségszintű felismerésének gyakorlására.`;
+
+async function main() {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  
+  for (const topic of topics) {
+    console.log("Generating image for " + topic.id + "...");
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            { text: basePrompt + "\n\n" + topic.prompt }
+          ]
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1",
+          }
+        }
+      });
+
+      let saved = false;
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          const base64EncodeString = part.inlineData.data;
+          const ext = part.inlineData.mimeType === 'image/jpeg' ? 'jpg' : 'png';
+          const filePath = path.join('src/assets', topic.id + '.' + ext);
+          fs.writeFileSync(filePath, Buffer.from(base64EncodeString, 'base64'));
+          console.log("Saved " + filePath);
+          saved = true;
+        } else if (part.text) {
+          console.log("Received text instead of image:", part.text);
+        }
+      }
+      if (!saved) {
+        console.log("No image data found in response for " + topic.id);
+      }
+    } catch (e) {
+      console.error("Failed to generate for " + topic.id + ":", e);
+    }
+    // Wait a bit to avoid rate limits
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+}
+
+main();

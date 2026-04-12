@@ -12,6 +12,14 @@ import html2canvas from 'html2canvas';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause, interpretMedicalReport, ReportInterpretationResponse, interpretMedicalReportFromFile } from './services/gemini';
 import simpleSquamousImg from './assets/simple_squamous_epithelium.png';
+import tobbreteguHamokImg from './assets/tobbretegu_hamok.png';
+import mirigyhamokImg from './assets/mirigyhamok.png';
+import kotoszovetImg from './assets/kotoszovet.png';
+import zsirszovetImg from './assets/zsirszovet.png';
+import porcszovetImg from './assets/porcszovet.png';
+import csontszovetImg from './assets/csontszovet.png';
+import izomszovetImg from './assets/izomszovet.png';
+import idegszovetImg from './assets/idegszovet.png';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -278,21 +286,21 @@ const COURSES: Course[] = [
             title: 'Többrétegű hámok',
             content: 'A többrétegű hámok több sejtsorból állnak, védelmi funkciót látnak el. \n\n1. **Többrétegű el nem szarusodó laphám**: Nedves felszíneken, pl. nyelőcső, szájüreg.\n2. **Többrétegű elszarusodó laphám**: A bőr felszínén (epidermis), ahol a felső réteg sejtjei elhalnak és keratinnal telítődnek.\n3. **Urothelium (Transitional)**: Tágulásra képes hám, pl. húgyhólyag.',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg',
+              tobbreteguHamokImg,
               'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Transitional_epithelium.jpg/1024px-Transitional_epithelium.jpg'
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stratified_squamous_epithelium.jpg/1024px-Stratified_squamous_epithelium.jpg'
+            microscopeImage: tobbreteguHamokImg
           },
           {
             id: 'mirigy-es-specialis',
             title: 'Mirigyhámok és speciális formák',
             content: 'A mirigyhámok váladéktermelésre (szekréció) módosultak. \n\n1. **Exokrin mirigyek**: Kivezetőcsővel rendelkeznek (pl. nyálmirigy).\n2. **Endokrin mirigyek**: Vérbe ürítik a hormonokat (pl. pajzsmirigy).\n3. **Többsoros csillós hengerhám**: Minden sejt érinti az alaphártyát, de nem minden sejt éri el a felszínt. Pl. légcső.',
             images: [
+              mirigyhamokImg,
               'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Glandular_epithelium.jpg/1024px-Glandular_epithelium.jpg',
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Pseudostratified_ciliated_columnar_epithelium.jpg/1024px-Pseudostratified_ciliated_columnar_epithelium.jpg',
               'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Goblet_cells.jpg/1024px-Goblet_cells.jpg'
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Pseudostratified_ciliated_columnar_epithelium.jpg/1024px-Pseudostratified_ciliated_columnar_epithelium.jpg'
+            microscopeImage: mirigyhamokImg
           }
         ]
       },
@@ -305,38 +313,38 @@ const COURSES: Course[] = [
             title: 'Rostos kötőszövetek',
             content: 'A kötőszövetek összekötik és rögzítik a szerveket. \n\n1. **Laza rostos kötőszövet**: Sok sejt és alapállomány, kevés rost. Pl. irha papilláris rétege.\n2. **Tömött rostos kötőszövet**: Sok kollagén rost, kevés sejt. Pl. inak, szalagok.',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
+              kotoszovetImg
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Connective_Tissue_H%26E_%2840163374290%29.jpg/1024px-Connective_Tissue_H%26E_%2840163374290%29.jpg'
+            microscopeImage: kotoszovetImg
           },
           {
             id: 'zsirszovet',
             title: 'Zsírszövet',
             content: 'A zsírszövet (adiposus szövet) speciális kötőszövet. \n\n1. **Fehér zsírszövet**: Egyetlen nagy zsírcsepp a sejtben (uniloculáris). Energiatárolás.\n2. **Barna zsírszövet**: Sok apró zsírcsepp (multiloculáris). Hőtermelés (főleg újszülötteknél).',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Adipose_tissue.jpg/1024px-Adipose_tissue.jpg'
+              zsirszovetImg
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Adipose_tissue.jpg/1024px-Adipose_tissue.jpg'
+            microscopeImage: zsirszovetImg
           },
           {
             id: 'porcszovetek',
             title: 'Porcszövetek',
             content: 'A porcszövet ereket nem tartalmazó, rugalmas támasztószövet. \n\n1. **Üvegporc (Hyalin)**: Leggyakoribb, pl. ízületi felszínek, légcső gyűrűk.\n2. **Elasztikus porc**: Sok rugalmas rost, pl. fülkagyló.\n3. **Rostos porc**: Sok kollagén rost, pl. csigolyaközti korongok.',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hyaline_cartilage.jpg/1024px-Hyaline_cartilage.jpg',
+              porcszovetImg,
               'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Elastic_cartilage.jpg/1024px-Elastic_cartilage.jpg',
               'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Fibrocartilage.jpg/1024px-Fibrocartilage.jpg'
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Hyaline_cartilage.jpg/1024px-Hyaline_cartilage.jpg'
+            microscopeImage: porcszovetImg
           },
           {
             id: 'csontszovet',
             title: 'Csontszövet',
             content: 'A csontszövet mineralizált (kalcium-foszfát) alapállományú támasztószövet. Szerkezeti egysége az **osteon** (Havers-rendszer), amelynek közepén a Havers-csatorna fut.',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Compact_bone.jpg/1024px-Compact_bone.jpg'
+              csontszovetImg
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Compact_bone.jpg/1024px-Compact_bone.jpg'
+            microscopeImage: csontszovetImg
           }
         ]
       },
@@ -349,20 +357,20 @@ const COURSES: Course[] = [
             title: 'Izomszövetek',
             content: 'Az izomszövetek összehúzódásra (kontrakció) képes sejtekből állnak. \n\n1. **Vázizom**: Harántcsíkolt, sokmagvú rostok, akaratlagos irányítás.\n2. **Szívizom**: Harántcsíkolt, Y alakban elágazó sejtek, Eberth-féle vonalak, önműködő.\n3. **Simaizom**: Orsó alakú sejtek, központi mag, nem harántcsíkolt, önműködő (pl. bélfal).',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Skeletal_muscle.jpg/1024px-Skeletal_muscle.jpg',
+              izomszovetImg,
               'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Cardiac_muscle.jpg/1024px-Cardiac_muscle.jpg',
               'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Smooth_muscle.jpg/1024px-Smooth_muscle.jpg'
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Skeletal_muscle.jpg/1024px-Skeletal_muscle.jpg'
+            microscopeImage: izomszovetImg
           },
           {
             id: 'idegszovet',
             title: 'Idegszövet',
             content: 'Az idegszövet neuronokból (ingerületvezetés) és glia sejtekből (támasztás, táplálás) áll. A neuronok részei: sejttest (perikaryon), dendritek és axon.',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Multipolar_neuron.jpg/1024px-Multipolar_neuron.jpg'
+              idegszovetImg
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Multipolar_neuron.jpg/1024px-Multipolar_neuron.jpg'
+            microscopeImage: idegszovetImg
           }
         ]
       }
