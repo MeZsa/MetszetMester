@@ -1910,7 +1910,10 @@ export default function App() {
                   ) : result ? (
                     <div className="space-y-8">
                       {/* Tab Switcher - Prominent Panel Style */}
-                      <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                      <div className={cn(
+                        "grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8",
+                        isFloating ? "lg:grid-cols-4" : ""
+                      )}>
                         <button
                           onClick={() => setActiveTab('report')}
                           className={cn(
