@@ -396,7 +396,7 @@ export default function App() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFloating, setIsFloating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'report' | 'structures' | 'quiz'>('report');
+  const [activeTab, setActiveTab] = useState<'report' | 'structures' | 'quiz' | 'clinical'>('report');
   const [quizQuestions, setQuizQuestions] = useState<HistologyQuizQuestion[]>([]);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -1538,13 +1538,17 @@ export default function App() {
             <div className="space-y-12 md:space-y-16">
               {/* Minimal Header when image is present */}
               <header className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={clearCurrent}>
+                <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setView('main')}>
                   <div className="relative overflow-hidden p-1 text-primary">
                     <ScientificLogo size={32} />
                   </div>
                   <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
                 </div>
                 <div className="flex items-center gap-4">
+                  <div className="hidden md:flex items-center gap-6 mr-4 opacity-60 font-mono text-[10px] uppercase tracking-widest font-bold">
+                    <button onClick={() => setView('courses')} className="hover:text-secondary transition-colors">Kurzusok</button>
+                    <button onClick={() => setView('report_interpreter')} className="hover:text-secondary transition-colors">Leletértelmező</button>
+                  </div>
                   {result && (
                     <button 
                       onClick={exportToPDF}
@@ -1993,6 +1997,34 @@ export default function App() {
                             />
                           )}
                         </button>
+
+                        <button
+                          onClick={() => setActiveTab('clinical')}
+                          className={cn(
+                            "flex-1 py-4 px-6 rounded-3xl border-2 transition-all duration-500 text-left group relative overflow-hidden",
+                            activeTab === 'clinical' 
+                              ? "bg-primary border-primary text-white shadow-xl scale-[1.01]" 
+                              : "bg-surface border-line text-primary/40 hover:border-primary/20 hover:text-primary"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="rounded-xl transition-colors">
+                              <FileText size={24} />
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Összefüggések</span>
+                              <h4 className="text-base font-serif font-bold">Klinikai Gondolkodás</h4>
+                            </div>
+                          </div>
+                          {activeTab === 'clinical' && (
+                            <motion.div 
+                              layoutId="tab-glow"
+                              className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0"
+                              animate={{ x: ['-100%', '100%'] }}
+                              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            />
+                          )}
+                        </button>
                       </div>
 
                       <AnimatePresence mode="wait">
@@ -2085,7 +2117,7 @@ export default function App() {
                               </div>
                             </div>
                           </motion.div>
-                        ) : (
+                        ) : activeTab === 'quiz' ? (
                           <motion.div
                             key="quiz-tab"
                             initial={{ opacity: 0, y: 10 }}
@@ -2276,6 +2308,69 @@ export default function App() {
                                 >
                                   Kvíz Generálása
                                 </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="clinical-tab"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.4 }}
+                            className="space-y-8"
+                          >
+                            <div className="mb-8 border-b border-line pb-4">
+                              <h3 className="font-serif text-xl font-bold text-primary">Klinikai Gondolkodás</h3>
+                              <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Clinical Reasoning & Differential Diagnosis</p>
+                            </div>
+
+                            {clinicalCauses.length > 0 ? (
+                              <div className="space-y-8">
+                                <div className="grid grid-cols-1 gap-6">
+                                  {clinicalCauses.map((cause, idx) => (
+                                    <motion.div
+                                      key={idx}
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: idx * 0.1 }}
+                                      className="p-8 bg-surface border border-line rounded-[2.5rem] hover:border-secondary/30 transition-all group"
+                                    >
+                                      <div className="space-y-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                          <h3 className="text-xl font-serif font-bold text-primary group-hover:text-secondary transition-colors">{cause.nev}</h3>
+                                          <span className="text-[10px] font-mono bg-primary/5 px-2 py-1 rounded text-primary/40">#{idx + 1}</span>
+                                        </div>
+                                        <p className="text-sm text-primary/80 font-medium leading-relaxed italic border-l-2 border-secondary/30 pl-4">
+                                          {cause.rovid_magyarazat}
+                                        </p>
+                                        <div className="space-y-2">
+                                          <h4 className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Patofiziológia</h4>
+                                          <p className="text-sm text-primary/60 leading-relaxed">
+                                            {cause.patofiziologia}
+                                          </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <h4 className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Differenciálás</h4>
+                                          <p className="text-sm text-primary/60 leading-relaxed">
+                                            {cause.kulonbseg}
+                                          </p>
+                                        </div>
+                                        <div className="space-y-2 pt-2 border-t border-line/50">
+                                          <h4 className="text-[10px] font-mono uppercase tracking-widest text-secondary/60">Gondolkodási lépés</h4>
+                                          <p className="text-sm text-primary/70 leading-relaxed italic">
+                                            {cause.gondolkodasi_lepes}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center py-20 gap-6 text-center">
+                                <FileText className="text-primary/10" size={64} />
+                                <p className="text-lg font-serif italic text-primary/40">Nincsenek elérhető klinikai összefüggések ehhez a metszethez.</p>
                               </div>
                             )}
                           </motion.div>
