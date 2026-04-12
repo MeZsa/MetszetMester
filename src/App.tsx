@@ -11,6 +11,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause, interpretMedicalReport, ReportInterpretationResponse, interpretMedicalReportFromFile } from './services/gemini';
+import simpleSquamousImg from './assets/simple_squamous_epithelium.png';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -266,11 +267,11 @@ const COURSES: Course[] = [
             title: 'Egyrétegű hámok',
             content: 'Az egyrétegű hámok egyetlen sejtrétegből állnak, amelyek az alaphártyán (basal lamina) nyugszanak. Típusai: \n\n1. **Egyrétegű laphám**: Lapos sejtek, pl. tüdő léghólyagocskák, erek fala (endothel).\n2. **Egyrétegű köbhám**: Kocka alakú sejtek, pl. vese csatornák, mirigyek kivezetőcsövei.\n3. **Egyrétegű hengerhám**: Magas, oszlopszerű sejtek, pl. bélcsatorna nyálkahártyája.',
             images: [
-              '/simple_squamous_epithelium.png',
+              simpleSquamousImg,
               'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Simple_cuboidal_epithelium.jpg/1024px-Simple_cuboidal_epithelium.jpg',
               'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Simple_columnar_epithelium.jpg/1024px-Simple_columnar_epithelium.jpg'
             ],
-            microscopeImage: '/simple_squamous_epithelium.png'
+            microscopeImage: simpleSquamousImg
           },
           {
             id: 'tobbretegu-hamok',
@@ -370,6 +371,7 @@ const COURSES: Course[] = [
 ];
 
 export default function App() {
+  console.log("Image source:", simpleSquamousImg);
   const [view, setView] = useState<'main' | 'courses' | 'clinical' | 'report_interpreter'>('main');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
