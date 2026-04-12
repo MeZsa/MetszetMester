@@ -901,12 +901,15 @@ export default function App() {
               className="w-full max-w-6xl mx-auto"
             >
               <div className="flex items-center justify-between mb-12">
-                <button 
+                <div 
                   onClick={() => setView('main')}
-                  className="text-xs font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
+                  className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
                 >
-                  <ArrowLeft size={14} /> Vissza a főoldalra
-                </button>
+                  <div className="relative overflow-hidden p-1 text-primary">
+                    <ScientificLogo size={32} />
+                  </div>
+                  <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
+                </div>
                 <div className="flex items-center gap-4">
                   {interpretationResult && (
                     <button 
@@ -1057,12 +1060,15 @@ export default function App() {
               className="w-full max-w-6xl mx-auto"
             >
               <div className="flex items-center justify-between mb-12">
-                <button 
+                <div 
                   onClick={() => setView('main')}
-                  className="text-xs font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
+                  className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
                 >
-                  <ArrowLeft size={14} /> Vissza a főoldalra
-                </button>
+                  <div className="relative overflow-hidden p-1 text-primary">
+                    <ScientificLogo size={32} />
+                  </div>
+                  <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
+                </div>
               </div>
 
               <div className="bg-surface border border-line rounded-[3rem] p-12 md:p-20 shadow-sm space-y-12">
@@ -1158,17 +1164,20 @@ export default function App() {
                   <h2 className="elegant-title text-4xl md:text-6xl">Tananyagok</h2>
                   <p className="text-[10px] font-mono uppercase tracking-[0.4em] opacity-40">Educational Resources</p>
                 </div>
-                <button 
+                <div 
                   onClick={() => {
                     setView('main');
                     setSelectedCourse(null);
                     setSelectedModule(null);
                     setSelectedLesson(null);
                   }}
-                  className="flex items-center gap-2 px-6 py-3 bg-primary/5 hover:bg-primary/10 rounded-full text-xs font-mono uppercase tracking-widest transition-all"
+                  className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
                 >
-                  <ArrowLeft size={14} /> Vissza az elemzéshez
-                </button>
+                  <div className="relative overflow-hidden p-1 text-primary">
+                    <ScientificLogo size={32} />
+                  </div>
+                  <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
+                </div>
               </div>
 
               {!selectedCourse ? (
@@ -1448,7 +1457,8 @@ export default function App() {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
-                  className="p-8 text-primary relative overflow-hidden group"
+                  className="p-8 text-primary relative overflow-hidden group cursor-pointer"
+                  onClick={() => setView('main')}
                 >
                   <ScientificLogo size={240} />
                 </motion.div>
@@ -1457,7 +1467,8 @@ export default function App() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 1 }}
-                    className="elegant-title text-6xl md:text-8xl"
+                    className="elegant-title text-6xl md:text-8xl cursor-pointer"
+                    onClick={() => setView('main')}
                   >
                     MetszetMester
                   </motion.h1>
@@ -2391,9 +2402,9 @@ export default function App() {
       <footer className="py-12 border-t border-line/10 bg-surface/30 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-[11px] md:text-xs font-serif text-primary/70 tracking-widest uppercase leading-relaxed max-w-3xl mx-auto">
-            © 2026 Szövettani Oktató Program • Ez az eszköz kizárólag oktatási célokat szolgál. 
+            © 2026 Metszetmester.hu – Szövettani Oktató Program
             <span className="block mt-2 font-bold text-primary/80">
-              Az AI elemzés nem helyettesíti a szakorvosi véleményt.
+              Az oldal kizárólag oktatási célokat szolgál. Az itt megjelenő tartalmak és AI‑alapú elemzések nem minősülnek diagnózisnak, és nem helyettesítik a szakorvosi véleményt.
             </span>
           </p>
         </div>
