@@ -268,3 +268,63 @@ export async function interpretMedicalReport(reportText: string): Promise<Report
     throw new Error("Hiba történt a lelet értelmezése során.");
   }
 }
+
+export async function interpretMedicalReportFromFile(base64Data: string, mimeType: string): Promise<ReportInterpretationResponse> {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  
+  const instruction = `
+  Ön egy oktatási célú orvosi leletértelmező asszisztens.
+  NAGYON FONTOS SZABÁLYOK:
+  ❗ nem ad diagnózist
+  ❗ nem ad kezelési javaslatot
+  ❗ kizárólag oktatási célt szolgál
+
+  Fő fókusz: orvosi terminológia elmagyarázása.
+  A felhasználó feltöltött egy orvosi leletet (kép vagy PDF formátumban). Az Ön feladata, hogy közérthetően elmagyarázza a benne szereplő orvosi szakszavakat, anatómiai fogalmakat és kifejezéseket.
+  A 'disclaimer' mezőben mindig hangsúlyozza ki a fenti 3 szabályt.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Kérem, értelmezze a mellékelt orvosi leletet." },
+            { inlineData: { data: base64Data.split(',')[1], mimeType } }
+          ]
+        }
+      ],
+      config: {
+        systemInstruction: instruction,
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING, description: "A lelet tartalmának nagyon rövid, 1-2 mondatos, laikusok számára is érthető általános összefoglalója (diagnózis nélkül)." },
+            terms: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  term: { type: Type.STRING, description: "Az orvosi szakszó vagy kifejezés." },
+                  explanation: { type: Type.STRING, description: "Közérthető magyarázat." }
+                },
+                required: ["term", "explanation"]
+              }
+            },
+            disclaimer: { type: Type.STRING, description: "Kötelező figyelmeztetés, hogy ez nem diagnózis, nem kezelési javaslat, csak oktatási célú." }
+          },
+          required: ["summary", "terms", "disclaimer"]
+        }
+      }
+    });
+
+    return JSON.parse(response.text || "{}");
+  } catch (error) {
+    console.error("Gemini Report Interpreter Error:", error);
+    throw new Error("Hiba történt a lelet értelmezése során.");
+  }
+}

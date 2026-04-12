@@ -4,11 +4,13 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft, AlertTriangle, Download } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import { cn } from './lib/utils';
-import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause, interpretMedicalReport, ReportInterpretationResponse } from './services/gemini';
+import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause, interpretMedicalReport, ReportInterpretationResponse, interpretMedicalReportFromFile } from './services/gemini';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -410,20 +412,192 @@ export default function App() {
 
   // Report Interpreter State
   const [reportText, setReportText] = useState('');
+  const [reportFileBase64, setReportFileBase64] = useState<string | null>(null);
+  const [reportFileType, setReportFileType] = useState<string | null>(null);
+  const [reportFileName, setReportFileName] = useState<string | null>(null);
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [interpretationResult, setInterpretationResult] = useState<ReportInterpretationResponse | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const reportFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReportFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type === 'text/plain') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setReportText(e.target?.result as string);
+        setReportFileBase64(null);
+        setReportFileType(null);
+        setReportFileName(null);
+      };
+      reader.readAsText(file);
+    } else if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        setReportFileBase64(base64);
+        setReportFileType(file.type);
+        setReportFileName(file.name);
+        setReportText(`[Feltöltött fájl: ${file.name}]`);
+        setInterpretationResult(null);
+        setError(null);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setError('Kérjük, válasszon egy szöveges fájlt (.txt), képet (.jpg, .jpeg, .png) vagy PDF-et!');
+    }
+    
+    // Reset input
+    if (reportFileInputRef.current) {
+      reportFileInputRef.current.value = '';
+    }
+  };
 
   const handleInterpretReport = async () => {
-    if (!reportText.trim()) return;
+    if (!reportText.trim() && !reportFileBase64) return;
+    
     setIsInterpreting(true);
     setError(null);
     try {
-      const result = await interpretMedicalReport(reportText);
+      let result;
+      if (reportFileBase64 && reportFileType) {
+        result = await interpretMedicalReportFromFile(reportFileBase64, reportFileType);
+      } else {
+        result = await interpretMedicalReport(reportText);
+      }
       setInterpretationResult(result);
     } catch (err: any) {
       setError(err.message || 'Hiba történt a lelet értelmezése során.');
     } finally {
       setIsInterpreting(false);
+    }
+  };
+
+  const exportToPDF = async () => {
+    if (!image || !result) return;
+    setIsExporting(true);
+    
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      
+      // 1. Add Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("MetszetMester - Szovettani Elemzes", margin, margin + 5);
+      
+      // 2. Add Image
+      const imgProps = doc.getImageProperties(image);
+      const imgWidth = pageWidth - 2 * margin;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      
+      let currentY = margin + 15;
+      doc.addImage(image, 'JPEG', margin, currentY, imgWidth, imgHeight);
+      currentY += imgHeight + 10;
+      
+      // 3. Add Report Content via html2canvas
+      const reportElement = document.getElementById('report-content-to-pdf');
+      if (reportElement) {
+        // Temporarily adjust styles for better PDF rendering
+        const originalColor = reportElement.style.color;
+        reportElement.style.color = '#000000'; // Ensure text is black for PDF
+        
+        const canvas = await html2canvas(reportElement, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+        
+        // Restore styles
+        reportElement.style.color = originalColor;
+        
+        const reportImgData = canvas.toDataURL('image/jpeg', 1.0);
+        const reportImgProps = doc.getImageProperties(reportImgData);
+        const reportImgWidth = pageWidth - 2 * margin;
+        const reportImgHeight = (reportImgProps.height * reportImgWidth) / reportImgProps.width;
+        
+        let heightLeft = reportImgHeight;
+        let position = currentY;
+        
+        doc.addImage(reportImgData, 'JPEG', margin, position, reportImgWidth, reportImgHeight);
+        heightLeft -= (pageHeight - position);
+        
+        while (heightLeft >= 0) {
+          position = heightLeft - reportImgHeight + margin;
+          doc.addPage();
+          doc.addImage(reportImgData, 'JPEG', margin, position, reportImgWidth, reportImgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+      
+      doc.save("szovettani_elemzes.pdf");
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      setError("Hiba történt a PDF generálása során.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportInterpretationToPDF = async () => {
+    if (!interpretationResult) return;
+    setIsExporting(true);
+    
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("MetszetMester - Leletertelmezes", margin, margin + 5);
+      
+      const reportElement = document.getElementById('interpretation-content-to-pdf');
+      if (reportElement) {
+        const originalColor = reportElement.style.color;
+        reportElement.style.color = '#000000';
+        
+        const canvas = await html2canvas(reportElement, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+        
+        reportElement.style.color = originalColor;
+        
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const imgProps = doc.getImageProperties(imgData);
+        const imgWidth = pageWidth - 2 * margin;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        
+        let currentY = margin + 15;
+        let heightLeft = imgHeight;
+        let position = currentY;
+        
+        doc.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - position);
+        
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight + margin;
+          doc.addPage();
+          doc.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+      
+      doc.save("leletertelmezes.pdf");
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      setError("Hiba történt a PDF generálása során.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -613,6 +787,13 @@ export default function App() {
     setZoom(1);
     setPan({ x: 0, y: 0 });
     setError(null);
+    setReportText('');
+    setReportFileBase64(null);
+    setReportFileType(null);
+    setReportFileName(null);
+    setInterpretationResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (reportFileInputRef.current) reportFileInputRef.current.value = '';
   };
 
   const loadFromHistory = (item: AnalysisResult) => {
@@ -726,6 +907,33 @@ export default function App() {
                 >
                   <ArrowLeft size={14} /> Vissza a főoldalra
                 </button>
+                <div className="flex items-center gap-4">
+                  {interpretationResult && (
+                    <button 
+                      onClick={exportInterpretationToPDF}
+                      disabled={isExporting}
+                      className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-secondary text-white text-[10px] font-mono uppercase tracking-widest hover:bg-secondary/90 transition-all duration-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isExporting ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                      {isExporting ? 'Exportálás...' : 'PDF Export'}
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => reportFileInputRef.current?.click()}
+                    disabled={isInterpreting}
+                    className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface border border-line text-[10px] font-mono uppercase tracking-widest text-primary hover:bg-primary hover:text-white transition-all duration-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Upload size={12} />
+                    Új feltöltés
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={reportFileInputRef}
+                    onChange={handleReportFileUpload}
+                    accept="image/*,.jpg,.jpeg,.png,application/pdf,text/plain"
+                    className="hidden"
+                  />
+                </div>
               </div>
 
               <div className="bg-surface border border-line rounded-[3rem] p-12 md:p-20 shadow-sm space-y-12">
@@ -743,27 +951,78 @@ export default function App() {
                 </div>
                 
                 <div className="space-y-6">
-                  <textarea
-                    value={reportText}
-                    onChange={(e) => setReportText(e.target.value)}
-                    placeholder="Másolja be ide a lelet szövegét..."
-                    className="w-full h-48 p-6 bg-primary/5 border border-primary/10 rounded-3xl resize-none focus:outline-none focus:ring-2 focus:ring-secondary/50 text-primary placeholder:text-primary/30"
-                  />
-                  <button
-                    onClick={handleInterpretReport}
-                    disabled={isInterpreting || !reportText.trim()}
-                    className="flex items-center gap-2 px-8 py-4 bg-secondary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-secondary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isInterpreting ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
-                    {isInterpreting ? 'Értelmezés folyamatban...' : 'Lelet értelmezése'}
-                  </button>
+                  {reportFileBase64 && reportFileType?.startsWith('image/') && (
+                    <div className="relative w-full h-64 rounded-3xl overflow-hidden border border-line bg-surface flex items-center justify-center">
+                      <img src={reportFileBase64} alt="Feltöltött lelet" className="max-w-full max-h-full object-contain" />
+                      <button 
+                        onClick={() => {
+                          setReportFileBase64(null);
+                          setReportFileType(null);
+                          setReportFileName(null);
+                          setReportText('');
+                        }}
+                        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                  {reportFileBase64 && reportFileType === 'application/pdf' && (
+                    <div className="relative w-full p-6 rounded-3xl border border-line bg-surface flex items-center gap-4">
+                      <div className="p-4 bg-primary/10 text-primary rounded-2xl">
+                        <FileText size={32} />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-primary">{reportFileName}</h4>
+                        <p className="text-sm text-primary/60">PDF Dokumentum</p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setReportFileBase64(null);
+                          setReportFileType(null);
+                          setReportFileName(null);
+                          setReportText('');
+                        }}
+                        className="p-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-full transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                  {!reportFileBase64 && (
+                    <textarea
+                      value={reportText}
+                      onChange={(e) => setReportText(e.target.value)}
+                      placeholder="Másolja be ide a lelet szövegét, vagy töltsön fel egy dokumentumot a lenti 'Kép / PDF feltöltése' gombbal..."
+                      className="w-full h-48 p-6 bg-primary/5 border border-primary/10 rounded-3xl resize-none focus:outline-none focus:ring-2 focus:ring-secondary/50 text-primary placeholder:text-primary/30"
+                    />
+                  )}
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <button
+                      onClick={handleInterpretReport}
+                      disabled={isInterpreting || (!reportText.trim() && !reportFileBase64)}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-secondary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-secondary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isInterpreting ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+                      {isInterpreting ? 'Értelmezés folyamatban...' : 'Lelet értelmezése'}
+                    </button>
+                    <button
+                      onClick={() => reportFileInputRef.current?.click()}
+                      disabled={isInterpreting}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-surface border-2 border-dashed border-primary/20 text-primary rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-primary/5 hover:border-primary/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Upload size={16} />
+                      Kép / PDF feltöltése
+                    </button>
+                  </div>
                 </div>
 
                 {interpretationResult && (
                   <motion.div
+                    id="interpretation-content-to-pdf"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="space-y-8 pt-8 border-t border-line"
+                    className="space-y-8 pt-8 border-t border-line bg-surface p-4 rounded-xl"
                   >
                     <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 text-red-700 dark:text-red-400">
                       <AlertTriangle size={24} className="shrink-0 mt-1" />
@@ -1285,13 +1544,25 @@ export default function App() {
                   </div>
                   <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
                 </div>
-                <button 
-                  onClick={clearCurrent}
-                  className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface border border-line text-[10px] font-mono uppercase tracking-widest text-primary hover:bg-primary hover:text-white transition-all duration-500 shadow-sm"
-                >
-                  <Upload size={12} />
-                  Új feltöltés
-                </button>
+                <div className="flex items-center gap-4">
+                  {result && (
+                    <button 
+                      onClick={exportToPDF}
+                      disabled={isExporting}
+                      className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-secondary text-white text-[10px] font-mono uppercase tracking-widest hover:bg-secondary/90 transition-all duration-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isExporting ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                      {isExporting ? 'Exportálás...' : 'PDF Export'}
+                    </button>
+                  )}
+                  <button 
+                    onClick={clearCurrent}
+                    className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface border border-line text-[10px] font-mono uppercase tracking-widest text-primary hover:bg-primary hover:text-white transition-all duration-500 shadow-sm"
+                  >
+                    <Upload size={12} />
+                    Új feltöltés
+                  </button>
+                </div>
               </header>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-start">
@@ -1738,7 +2009,7 @@ export default function App() {
                               <h3 className="font-serif text-xl font-bold text-primary">Elemzési Jelentés</h3>
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histological Analysis</p>
                             </div>
-                            <div className="markdown-body">
+                            <div id="report-content-to-pdf" className="markdown-body bg-surface p-2 rounded-xl">
                               <Markdown
                                 components={{
                                   a: ({ node, ...props }) => {
