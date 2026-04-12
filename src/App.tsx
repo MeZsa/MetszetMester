@@ -266,11 +266,11 @@ const COURSES: Course[] = [
             title: 'Egyrétegű hámok',
             content: 'Az egyrétegű hámok egyetlen sejtrétegből állnak, amelyek az alaphártyán (basal lamina) nyugszanak. Típusai: \n\n1. **Egyrétegű laphám**: Lapos sejtek, pl. tüdő léghólyagocskák, erek fala (endothel).\n2. **Egyrétegű köbhám**: Kocka alakú sejtek, pl. vese csatornák, mirigyek kivezetőcsövei.\n3. **Egyrétegű hengerhám**: Magas, oszlopszerű sejtek, pl. bélcsatorna nyálkahártyája.',
             images: [
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg',
+              '/simple_squamous_epithelium.png',
               'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Simple_cuboidal_epithelium.jpg/1024px-Simple_cuboidal_epithelium.jpg',
               'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Simple_columnar_epithelium.jpg/1024px-Simple_columnar_epithelium.jpg'
             ],
-            microscopeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Simple_squamous_epithelium.jpg/1024px-Simple_squamous_epithelium.jpg'
+            microscopeImage: '/simple_squamous_epithelium.png'
           },
           {
             id: 'tobbretegu-hamok',
@@ -1161,7 +1161,7 @@ export default function App() {
               {/* Courses Header */}
               <div className="flex items-center justify-between border-b border-line pb-8">
                 <div className="space-y-2">
-                  <h2 className="elegant-title text-4xl md:text-6xl">Tananyagok</h2>
+                  <h2 className="elegant-title text-3xl md:text-5xl leading-normal md:leading-normal pb-2">Tananyagok</h2>
                   <p className="text-[10px] font-mono uppercase tracking-[0.4em] opacity-40">Educational Resources</p>
                 </div>
                 <div 
@@ -1467,7 +1467,7 @@ export default function App() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 1 }}
-                    className="elegant-title text-6xl md:text-8xl cursor-pointer"
+                    className="elegant-title text-6xl md:text-8xl leading-normal md:leading-normal cursor-pointer"
                     onClick={() => setView('main')}
                   >
                     MetszetMester

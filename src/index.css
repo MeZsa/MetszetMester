@@ -81,7 +81,7 @@
   .micro-corners::after { @apply bottom-6 right-6 border-b-2 border-r-2 rounded-br-lg; }
 
   .elegant-title {
-    @apply font-serif font-bold text-primary px-2;
+    @apply font-serif font-bold text-primary px-2 pb-2;
     background: linear-gradient(to bottom right, var(--deep-blue), var(--med-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
