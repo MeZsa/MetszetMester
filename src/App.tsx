@@ -11,15 +11,6 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from './lib/utils';
 import { analyzeHistologyImage, HistologyAnnotation, generateHistologyQuiz, HistologyQuizQuestion, ClinicalCause, interpretMedicalReport, ReportInterpretationResponse, interpretMedicalReportFromFile } from './services/gemini';
-import simpleSquamousImg from './assets/simple_squamous_epithelium.png';
-import tobbreteguHamokImg from './assets/tobbretegu_hamok.png';
-import mirigyhamokImg from './assets/mirigyhamok.png';
-import kotoszovetImg from './assets/kotoszovet.png';
-import zsirszovetImg from './assets/zsirszovet.png';
-import porcszovetImg from './assets/porcszovet.png';
-import csontszovetImg from './assets/csontszovet.png';
-import izomszovetImg from './assets/izomszovet.png';
-import idegszovetImg from './assets/idegszovet.png';
 
 const ScientificLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => {
   return (
@@ -239,151 +230,8 @@ function LoadingMessage() {
   );
 }
 
-interface Lesson {
-  id: string;
-  title: string;
-  content: string;
-  images?: string[];
-  microscopeImage?: string;
-}
-
-interface Module {
-  id: string;
-  title: string;
-  lessons: Lesson[];
-}
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  modules: Module[];
-}
-
-const COURSES: Course[] = [
-  {
-    id: 'alapszovettan',
-    title: 'Alapszövettan',
-    description: 'Bevezetés a szövettan alapjaiba, a fő szövettípusok áttekintése.',
-    modules: [
-      {
-        id: 'hamok',
-        title: 'Hámok',
-        lessons: [
-          {
-            id: 'egyretegu-hamok',
-            title: 'Egyrétegű hámok',
-            content: 'Az egyrétegű hámok egyetlen sejtrétegből állnak, amelyek az alaphártyán (basal lamina) nyugszanak. Típusai: \n\n1. **Egyrétegű laphám**: Lapos sejtek, pl. tüdő léghólyagocskák, erek fala (endothel).\n2. **Egyrétegű köbhám**: Kocka alakú sejtek, pl. vese csatornák, mirigyek kivezetőcsövei.\n3. **Egyrétegű hengerhám**: Magas, oszlopszerű sejtek, pl. bélcsatorna nyálkahártyája.',
-            images: [
-              simpleSquamousImg,
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Simple_cuboidal_epithelium.jpg/1024px-Simple_cuboidal_epithelium.jpg',
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Simple_columnar_epithelium.jpg/1024px-Simple_columnar_epithelium.jpg'
-            ],
-            microscopeImage: simpleSquamousImg
-          },
-          {
-            id: 'tobbretegu-hamok',
-            title: 'Többrétegű hámok',
-            content: 'A többrétegű hámok több sejtsorból állnak, védelmi funkciót látnak el. \n\n1. **Többrétegű el nem szarusodó laphám**: Nedves felszíneken, pl. nyelőcső, szájüreg.\n2. **Többrétegű elszarusodó laphám**: A bőr felszínén (epidermis), ahol a felső réteg sejtjei elhalnak és keratinnal telítődnek.\n3. **Urothelium (Transitional)**: Tágulásra képes hám, pl. húgyhólyag.',
-            images: [
-              tobbreteguHamokImg,
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Transitional_epithelium.jpg/1024px-Transitional_epithelium.jpg'
-            ],
-            microscopeImage: tobbreteguHamokImg
-          },
-          {
-            id: 'mirigy-es-specialis',
-            title: 'Mirigyhámok és speciális formák',
-            content: 'A mirigyhámok váladéktermelésre (szekréció) módosultak. \n\n1. **Exokrin mirigyek**: Kivezetőcsővel rendelkeznek (pl. nyálmirigy).\n2. **Endokrin mirigyek**: Vérbe ürítik a hormonokat (pl. pajzsmirigy).\n3. **Többsoros csillós hengerhám**: Minden sejt érinti az alaphártyát, de nem minden sejt éri el a felszínt. Pl. légcső.',
-            images: [
-              mirigyhamokImg,
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Glandular_epithelium.jpg/1024px-Glandular_epithelium.jpg',
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Goblet_cells.jpg/1024px-Goblet_cells.jpg'
-            ],
-            microscopeImage: mirigyhamokImg
-          }
-        ]
-      },
-      {
-        id: 'kotoszovet',
-        title: 'Kötő- és támasztószövetek',
-        lessons: [
-          {
-            id: 'rostos-kotoszovet',
-            title: 'Rostos kötőszövetek',
-            content: 'A kötőszövetek összekötik és rögzítik a szerveket. \n\n1. **Laza rostos kötőszövet**: Sok sejt és alapállomány, kevés rost. Pl. irha papilláris rétege.\n2. **Tömött rostos kötőszövet**: Sok kollagén rost, kevés sejt. Pl. inak, szalagok.',
-            images: [
-              kotoszovetImg
-            ],
-            microscopeImage: kotoszovetImg
-          },
-          {
-            id: 'zsirszovet',
-            title: 'Zsírszövet',
-            content: 'A zsírszövet (adiposus szövet) speciális kötőszövet. \n\n1. **Fehér zsírszövet**: Egyetlen nagy zsírcsepp a sejtben (uniloculáris). Energiatárolás.\n2. **Barna zsírszövet**: Sok apró zsírcsepp (multiloculáris). Hőtermelés (főleg újszülötteknél).',
-            images: [
-              zsirszovetImg
-            ],
-            microscopeImage: zsirszovetImg
-          },
-          {
-            id: 'porcszovetek',
-            title: 'Porcszövetek',
-            content: 'A porcszövet ereket nem tartalmazó, rugalmas támasztószövet. \n\n1. **Üvegporc (Hyalin)**: Leggyakoribb, pl. ízületi felszínek, légcső gyűrűk.\n2. **Elasztikus porc**: Sok rugalmas rost, pl. fülkagyló.\n3. **Rostos porc**: Sok kollagén rost, pl. csigolyaközti korongok.',
-            images: [
-              porcszovetImg,
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Elastic_cartilage.jpg/1024px-Elastic_cartilage.jpg',
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Fibrocartilage.jpg/1024px-Fibrocartilage.jpg'
-            ],
-            microscopeImage: porcszovetImg
-          },
-          {
-            id: 'csontszovet',
-            title: 'Csontszövet',
-            content: 'A csontszövet mineralizált (kalcium-foszfát) alapállományú támasztószövet. Szerkezeti egysége az **osteon** (Havers-rendszer), amelynek közepén a Havers-csatorna fut.',
-            images: [
-              csontszovetImg
-            ],
-            microscopeImage: csontszovetImg
-          }
-        ]
-      },
-      {
-        id: 'izom-es-ideg',
-        title: 'Izom- és idegszövet',
-        lessons: [
-          {
-            id: 'izomszovetek',
-            title: 'Izomszövetek',
-            content: 'Az izomszövetek összehúzódásra (kontrakció) képes sejtekből állnak. \n\n1. **Vázizom**: Harántcsíkolt, sokmagvú rostok, akaratlagos irányítás.\n2. **Szívizom**: Harántcsíkolt, Y alakban elágazó sejtek, Eberth-féle vonalak, önműködő.\n3. **Simaizom**: Orsó alakú sejtek, központi mag, nem harántcsíkolt, önműködő (pl. bélfal).',
-            images: [
-              izomszovetImg,
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Cardiac_muscle.jpg/1024px-Cardiac_muscle.jpg',
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Smooth_muscle.jpg/1024px-Smooth_muscle.jpg'
-            ],
-            microscopeImage: izomszovetImg
-          },
-          {
-            id: 'idegszovet',
-            title: 'Idegszövet',
-            content: 'Az idegszövet neuronokból (ingerületvezetés) és glia sejtekből (támasztás, táplálás) áll. A neuronok részei: sejttest (perikaryon), dendritek és axon.',
-            images: [
-              idegszovetImg
-            ],
-            microscopeImage: idegszovetImg
-          }
-        ]
-      }
-    ]
-  }
-];
-
 export default function App() {
-  console.log("Image source:", simpleSquamousImg);
-  const [view, setView] = useState<'main' | 'courses' | 'clinical' | 'report_interpreter'>('main');
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [view, setView] = useState<'main' | 'clinical' | 'report_interpreter'>('main');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('metszetmester-theme');
@@ -687,47 +535,6 @@ export default function App() {
       e.preventDefault();
       if (e.deltaY < 0) handleZoomIn();
       else handleZoomOut();
-    }
-  };
-
-  const [lessonZoom, setLessonZoom] = useState(1);
-  const [lessonPan, setLessonPan] = useState({ x: 0, y: 0 });
-  const lessonContainerRef = useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    setLessonZoom(1);
-    setLessonPan({ x: 0, y: 0 });
-  }, [selectedLesson]);
-
-  const handleLessonPan = (direction: 'up' | 'down' | 'left' | 'right') => {
-    const step = 50 / lessonZoom;
-    setLessonPan(prev => {
-      switch (direction) {
-        case 'up': return { ...prev, y: prev.y + step };
-        case 'down': return { ...prev, y: prev.y - step };
-        case 'left': return { ...prev, x: prev.x + step };
-        case 'right': return { ...prev, x: prev.x - step };
-        default: return prev;
-      }
-    });
-  };
-
-  const handleLessonZoomIn = () => setLessonZoom(prev => Math.min(prev + 0.5, 5));
-  const handleLessonZoomOut = () => setLessonZoom(prev => {
-    const newZoom = Math.max(prev - 0.5, 1);
-    if (newZoom === 1) setLessonPan({ x: 0, y: 0 });
-    return newZoom;
-  });
-  const resetLessonZoom = () => {
-    setLessonZoom(1);
-    setLessonPan({ x: 0, y: 0 });
-  };
-
-  const handleLessonWheel = (e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      if (e.deltaY < 0) handleLessonZoomIn();
-      else handleLessonZoomOut();
     }
   };
 
@@ -1161,300 +968,6 @@ export default function App() {
                 </div>
               </div>
             </motion.div>
-          ) : view === 'courses' ? (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-12"
-            >
-              {/* Courses Header */}
-              <div className="flex items-center justify-between border-b border-line pb-8">
-                <div className="space-y-2">
-                  <h2 className="elegant-title text-3xl md:text-5xl leading-normal md:leading-normal pb-2">Tananyagok</h2>
-                  <p className="text-[10px] font-mono uppercase tracking-[0.4em] opacity-40">Educational Resources</p>
-                </div>
-                <div 
-                  onClick={() => {
-                    setView('main');
-                    setSelectedCourse(null);
-                    setSelectedModule(null);
-                    setSelectedLesson(null);
-                  }}
-                  className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  <div className="relative overflow-hidden p-1 text-primary">
-                    <ScientificLogo size={32} />
-                  </div>
-                  <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
-                </div>
-              </div>
-
-              {!selectedCourse ? (
-                /* Course List */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {COURSES.map(course => (
-                    <motion.div
-                      key={course.id}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedCourse(course)}
-                      className="p-8 bg-surface border border-line rounded-[2.5rem] cursor-pointer group hover:border-primary/30 transition-all shadow-sm"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <motion.div
-                          animate={{ scale: [1, 1.15, 1] }}
-                          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                          <BookOpen size={24} className="text-primary" />
-                        </motion.div>
-                      </div>
-                      <h3 className="text-2xl font-serif font-bold text-primary mb-3">{course.title}</h3>
-                      <p className="text-sm text-primary/60 leading-relaxed mb-6">{course.description}</p>
-                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-secondary font-bold">
-                        Felfedezés <ChevronRight size={14} />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : !selectedLesson ? (
-                /* Module & Lesson Navigation */
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                  <div className="lg:col-span-4 space-y-8">
-                    <button 
-                      onClick={() => setSelectedCourse(null)}
-                      className="text-xs font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
-                    >
-                      <ArrowLeft size={12} /> Összes kurzus
-                    </button>
-                    <div className="space-y-2">
-                      <h3 className="text-3xl font-serif font-bold text-primary">{selectedCourse.title}</h3>
-                      <p className="text-sm text-primary/60">{selectedCourse.description}</p>
-                    </div>
-                    <div className="space-y-4">
-                      {selectedCourse.modules.map(module => (
-                        <div key={module.id} className="space-y-2">
-                          <div className="px-4 py-2 bg-primary/5 rounded-xl text-[10px] font-mono uppercase tracking-widest font-bold text-primary/60">
-                            {module.title}
-                          </div>
-                          <div className="space-y-1 pl-2">
-                            {module.lessons.map(lesson => (
-                              <motion.button
-                                key={lesson.id}
-                                whileHover={{ x: 4, scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => {
-                                  setSelectedModule(module);
-                                  setSelectedLesson(lesson);
-                                }}
-                                className="w-full text-left px-4 py-3 rounded-xl hover:bg-primary/5 text-sm transition-colors flex items-center justify-between group"
-                              >
-                                <span className="text-primary/80 group-hover:text-primary">{lesson.title}</span>
-                                <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </motion.button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="lg:col-span-8 bg-surface/50 border border-line rounded-[3rem] p-12 flex flex-col items-center justify-center text-center space-y-6">
-                    <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
-                      <Play size={32} className="text-primary/20" />
-                    </div>
-                    <div className="space-y-2">
-                      <h4 className="text-xl font-serif font-bold text-primary/40">Válasszon egy leckét</h4>
-                      <p className="text-sm text-primary/30 max-w-xs">Kattintson a bal oldali listából a tanulás megkezdéséhez.</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* Lesson Content */
-                <div className="space-y-12">
-                  <div className="flex items-center justify-between">
-                    <button 
-                      onClick={() => setSelectedLesson(null)}
-                      className="text-xs font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
-                    >
-                      <ArrowLeft size={12} /> Vissza a modulokhoz
-                    </button>
-                    <div className="text-[10px] font-mono uppercase tracking-widest opacity-40">
-                      {selectedCourse.title} / {selectedModule?.title}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    <div className="lg:col-span-7 space-y-10">
-                      <div className="space-y-4">
-                        <h3 className="text-4xl md:text-5xl font-serif font-bold text-primary leading-tight">
-                          {selectedLesson.title}
-                        </h3>
-                        <div className="h-1 w-20 bg-secondary rounded-full" />
-                      </div>
-
-                      <div className="prose prose-slate max-w-none">
-                        <p className="text-lg text-primary/80 leading-relaxed font-serif">
-                          {selectedLesson.content}
-                        </p>
-                      </div>
-
-                      {selectedLesson.images && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest font-bold text-secondary">
-                            <Camera size={14} /> Szemléltető Ábrák
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {selectedLesson.images.map((img, i) => (
-                              <motion.div 
-                                key={i}
-                                whileHover={{ scale: 1.02 }}
-                                className="aspect-video rounded-[2rem] overflow-hidden border border-line shadow-sm bg-surface"
-                              >
-                                <img src={img} alt="Lesson" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="lg:col-span-5 space-y-8">
-                      {selectedLesson.microscopeImage && (
-                        <div className="space-y-6">
-                          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest font-bold text-secondary">
-                            <Microscope size={14} /> Interaktív Mikroszkóp
-                          </div>
-                          <div 
-                            ref={lessonContainerRef}
-                            onWheel={handleLessonWheel}
-                            className="aspect-square bg-surface border border-line rounded-[3rem] overflow-hidden relative group shadow-xl"
-                          >
-                            <motion.div 
-                              className="w-full h-full relative cursor-grab active:cursor-grabbing"
-                              animate={{ 
-                                scale: lessonZoom,
-                                x: lessonPan.x,
-                                y: lessonPan.y
-                              }}
-                              drag={lessonZoom > 1}
-                              dragConstraints={lessonContainerRef}
-                              onDragEnd={(_, info) => {
-                                setLessonPan(prev => ({
-                                  x: prev.x + info.offset.x,
-                                  y: prev.y + info.offset.y
-                                }));
-                              }}
-                              dragElastic={0.1}
-                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            >
-                              <img 
-                                src={selectedLesson.microscopeImage} 
-                                alt="Microscope" 
-                                className="w-full h-full object-cover pointer-events-none"
-                                referrerPolicy="no-referrer"
-                              />
-                            </motion.div>
-                            
-                            {/* Zoom & Pan Controls Overlay */}
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                              {/* Pan Controls (D-Pad) */}
-                              <div className="flex flex-col items-center bg-surface/90 backdrop-blur-md p-1.5 rounded-full border border-line shadow-lg scale-75 origin-bottom">
-                                <button 
-                                  onClick={() => handleLessonPan('up')}
-                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                                  title="Felfelé mozgatás"
-                                >
-                                  <ChevronUp size={14} />
-                                </button>
-                                <div className="flex items-center gap-2">
-                                  <button 
-                                    onClick={() => handleLessonPan('left')}
-                                    className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                                    title="Balra mozgatás"
-                                  >
-                                    <ChevronLeft size={14} />
-                                  </button>
-                                  <div className="w-1 h-1 rounded-full bg-primary/20" />
-                                  <button 
-                                    onClick={() => handleLessonPan('right')}
-                                    className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                                    title="Jobbra mozgatás"
-                                  >
-                                    <ChevronRight size={14} />
-                                  </button>
-                                </div>
-                                <button 
-                                  onClick={() => handleLessonPan('down')}
-                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                                  title="Lefelé mozgatás"
-                                >
-                                  <ChevronDown size={14} />
-                                </button>
-                              </div>
-
-                              {/* Zoom Controls Bar */}
-                              <div className="flex items-center gap-1 p-1.5 bg-surface/90 backdrop-blur-md rounded-full border border-line shadow-lg scale-90">
-                                <button 
-                                  onClick={handleLessonZoomOut}
-                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                                  title="Kicsinyítés"
-                                >
-                                  <ZoomOut size={14} />
-                                </button>
-                                <div className="h-3 w-px bg-line mx-1" />
-                                <span className="text-[9px] font-mono font-bold text-primary min-w-[3ch] text-center">
-                                  {Math.round(lessonZoom * 100)}%
-                                </span>
-                                <div className="h-3 w-px bg-line mx-1" />
-                                <button 
-                                  onClick={handleLessonZoomIn}
-                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors"
-                                  title="Nagyítás"
-                                >
-                                  <ZoomIn size={14} />
-                                </button>
-                                <button 
-                                  onClick={resetLessonZoom}
-                                  className="p-1.5 hover:bg-primary/5 rounded-full text-primary transition-colors ml-0.5"
-                                  title="Alaphelyzet"
-                                >
-                                  <Maximize size={14} />
-                                </button>
-                              </div>
-                            </div>
-                            
-                            <div className="absolute top-4 left-4 pointer-events-none">
-                              <span className="text-[9px] font-mono uppercase tracking-widest text-white font-bold bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full">
-                                Virtuális Metszet
-                              </span>
-                            </div>
-                          </div>
-                          <p className="text-xs text-primary/40 italic text-center px-8 leading-relaxed">
-                            A fenti ablakban a leckéhez kapcsolódó reprezentatív metszetet láthatja.
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 space-y-6">
-                        <h4 className="text-sm font-mono uppercase tracking-widest font-bold text-primary">Összefoglaló</h4>
-                        <ul className="space-y-4">
-                          {[
-                            "Kulcsfontosságú morfológiai jegyek",
-                            "Élettani funkciók megértése",
-                            "Klinikai vonatkozások"
-                          ].map((item, i) => (
-                            <li key={i} className="flex gap-3 text-sm text-primary/70">
-                              <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 shrink-0" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </motion.div>
           ) : !image ? (
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
@@ -1547,31 +1060,39 @@ export default function App() {
                 </p>
               </motion.div>
 
-              {/* Minimal Footer Info */}
-              <div className="mt-16 md:mt-24 flex gap-12 opacity-20 font-mono text-[10px] uppercase tracking-[0.3em] font-bold">
-                <button 
-                  onClick={() => setView('courses')}
-                  className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <BookOpen size={14} />
-                  </motion.div> KURZUSOK
-                </button>
-                <button 
+              {/* Feature Navigation Buttons */}
+              <div className="mt-16 md:mt-24 flex flex-col sm:flex-row gap-6 md:gap-8 justify-center pb-12 w-full">
+                <motion.button 
                   onClick={() => setView('clinical')}
-                  className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative flex items-center gap-4 md:gap-5 px-6 md:px-8 py-5 md:py-6 bg-gradient-to-br from-surface to-off-white overflow-hidden rounded-3xl border border-secondary/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 w-full sm:w-auto"
                 >
-                  <span className="flex items-center gap-2"><FileText size={14} /> Klinikai Gondolkodás</span>
-                </button>
-                <button 
+                  <div className="absolute inset-0 bg-gradient-to-r from-secondary/0 via-secondary/5 to-secondary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                  <div className="p-3 bg-secondary/10 rounded-2xl text-secondary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm">
+                    <Brain size={22} className="relative z-10" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-serif text-lg md:text-xl font-bold text-primary relative z-10">Klinikai Gondolkodás</span>
+                    <span className="block text-[10px] font-mono uppercase tracking-widest text-primary/50 mt-1">Esettanulmányok</span>
+                  </div>
+                </motion.button>
+
+                <motion.button 
                   onClick={() => setView('report_interpreter')}
-                  className="flex items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative flex items-center gap-4 md:gap-5 px-6 md:px-8 py-5 md:py-6 bg-gradient-to-br from-surface to-off-white overflow-hidden rounded-3xl border border-secondary/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 w-full sm:w-auto"
                 >
-                  <span className="flex items-center gap-2"><FileText size={14} /> Leletértelmező (oktatási mód)</span>
-                </button>
+                  <div className="absolute inset-0 bg-gradient-to-r from-secondary/0 via-secondary/5 to-secondary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                  <div className="p-3 bg-secondary/10 rounded-2xl text-secondary group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 shadow-sm">
+                    <FileText size={22} className="relative z-10" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-serif text-lg md:text-xl font-bold text-primary relative z-10">Leletértelmező</span>
+                    <span className="block text-[10px] font-mono uppercase tracking-widest text-secondary mt-1">Oktatási Mód</span>
+                  </div>
+                </motion.button>
               </div>
             </motion.div>
           ) : (
@@ -1584,10 +1105,22 @@ export default function App() {
                   </div>
                   <span className="font-serif font-bold text-primary pr-2">MetszetMester</span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="hidden md:flex items-center gap-6 mr-4 opacity-60 font-mono text-[10px] uppercase tracking-widest font-bold">
-                    <button onClick={() => setView('courses')} className="hover:text-secondary transition-colors">Kurzusok</button>
-                    <button onClick={() => setView('report_interpreter')} className="hover:text-secondary transition-colors">Leletértelmező</button>
+                <div className="flex items-center gap-2 md:gap-4 flex-wrap justify-end">
+                  <div className="hidden md:flex items-center gap-3">
+                    <button 
+                      onClick={() => setView('clinical')} 
+                      className="px-4 py-2 rounded-full border border-secondary/20 bg-secondary/5 text-primary text-[10px] font-mono uppercase tracking-widest font-bold hover:bg-secondary/10 hover:border-secondary/40 transition-all duration-300 flex items-center gap-2"
+                    >
+                      <Brain size={12} className="text-secondary" />
+                      Klinikai Gondolkodás
+                    </button>
+                    <button 
+                      onClick={() => setView('report_interpreter')} 
+                      className="px-4 py-2 rounded-full border border-secondary/20 bg-secondary/5 text-primary text-[10px] font-mono uppercase tracking-widest font-bold hover:bg-secondary/10 hover:border-secondary/40 transition-all duration-300 flex items-center gap-2"
+                    >
+                      <FileText size={12} className="text-secondary" />
+                      Leletértelmező
+                    </button>
                   </div>
                   {result && (
                     <button 
