@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --deep-blue: #1f3a5f;
@@ -111,37 +112,6 @@
 body {
   @apply bg-bg text-ink selection:bg-primary/10 selection:text-primary transition-colors duration-500;
   font-family: var(--font-sans);
-}
-
-/* Scientific Typography */
-.markdown-body {
-  @apply font-sans text-primary/90;
-}
-.markdown-body h1 { 
-  @apply text-3xl font-serif font-bold mb-8 text-primary tracking-tight border-b-2 border-primary/10 pb-4 flex items-center gap-3; 
-}
-.markdown-body h2 { 
-  @apply text-xl font-serif font-bold mb-4 text-primary mt-10 flex items-center gap-3;
-}
-.markdown-body h2::before {
-  content: '';
-  @apply w-2 h-2 bg-secondary rounded-full;
-}
-.markdown-body p { 
-  @apply mb-6 leading-relaxed text-[16px] font-light; 
-}
-.markdown-body strong { 
-  @apply font-bold text-primary; 
-}
-.markdown-body ul { 
-  @apply space-y-4 mb-8 list-none pl-0; 
-}
-.markdown-body li { 
-  @apply flex items-start gap-4 text-[15px] p-4 bg-primary/5 rounded-2xl border border-primary/5 transition-all hover:bg-primary/10; 
-}
-.markdown-body li::before {
-  content: '•';
-  @apply text-secondary font-bold text-lg leading-none mt-0.5;
 }
 
 .report-header {

@@ -77,22 +77,26 @@ export interface ReportInterpretationResponse {
   disclaimer: string;
 }
 
-export async function analyzeHistologyImage(base64Image: string, mimeType: string): Promise<HistologyAnalysisResponse> {
+export async function analyzeHistologyImage(base64Image: string, mimeType: string, language: string = 'hu'): Promise<HistologyAnalysisResponse> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   
+  const langInstruction = language === 'en' 
+    ? "IMPORTANT: You MUST respond entirely in English. Use standard English medical terminology."
+    : "FONTOS: Válaszaidat kizárólag magyar nyelven add meg, a hazai orvosi terminológiát használva.";
+
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
         {
           parts: [
-            { text: "Kérlek, elemezd ezt a szövettani metszetet oktatási céllal, és azonosítsd a főbb struktúrákat koordinátákkal." },
+            { text: language === 'en' ? "Please analyze this histology slide for educational purposes and identify the main structures with coordinates." : "Kérlek, elemezd ezt a szövettani metszetet oktatási céllal, és azonosítsd a főbb struktúrákat koordinátákkal." },
             { inlineData: { data: base64Image.split(',')[1], mimeType } }
           ]
         }
       ],
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: SYSTEM_INSTRUCTION + "\n\n" + langInstruction,
         temperature: 0.2,
         responseMimeType: "application/json",
         responseSchema: {
@@ -147,10 +151,10 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
   }
 }
 
-export async function generateHistologyQuiz(base64Image: string, mimeType: string, analysis: HistologyAnalysisResponse): Promise<HistologyQuizResponse> {
+export async function generateHistologyQuiz(base64Image: string, mimeType: string, analysis: HistologyAnalysisResponse, language: string = 'hu'): Promise<HistologyQuizResponse> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   
-  const quizPrompt = `
+  const quizPromptHu = `
     Készíts egy 5 kérdésből álló feleletválasztós kvízt a mellékelt szövettani kép és az alábbi elemzés alapján.
     
     Elemzés:
@@ -169,6 +173,27 @@ export async function generateHistologyQuiz(base64Image: string, mimeType: strin
     Ha egy kérdés egy konkrét annotációra vonatkozik, add meg annak az indexét az 'annotationRef' mezőben.
   `;
 
+  const quizPromptEn = `
+    Create a multiple-choice quiz with 5 questions based on the attached histology image and the analysis below.
+    
+    Analysis:
+    ${analysis.report}
+    
+    Annotations:
+    ${JSON.stringify(analysis.annotations)}
+    
+    The goal of the quiz is to test students' deeper understanding.
+    IMPORTANT: Do not just ask for identification! At least 60% of the questions should cover:
+    1. **Functional correlations**: How does the structure serve its physiological purpose?
+    2. **Clinical relevance**: What pathological conditions or symptoms can arise from damage to this tissue element?
+    3. **Differential diagnosis**: What other histological appearances can it be confused with, and what is the difference?
+    
+    Provide 4 options for each question, indicate the correct answer, and provide a detailed professional explanation.
+    If a question refers to a specific annotation, provide its index in the 'annotationRef' field.
+  `;
+
+  const quizPrompt = language === 'en' ? quizPromptEn : quizPromptHu;
+
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -181,7 +206,9 @@ export async function generateHistologyQuiz(base64Image: string, mimeType: strin
         }
       ],
       config: {
-        systemInstruction: "Ön egy szövettan oktató. Készítsen szakmailag pontos, tanulságos kvízt.",
+        systemInstruction: language === 'en' 
+          ? "You are a histology instructor. Create a professionally accurate, educational quiz in English." 
+          : "Ön egy szövettan oktató. Készítsen szakmailag pontos, tanulságos kvízt magyar nyelven.",
         temperature: 0.4,
         responseMimeType: "application/json",
         responseSchema: {
@@ -217,10 +244,10 @@ export async function generateHistologyQuiz(base64Image: string, mimeType: strin
   }
 }
 
-export async function interpretMedicalReport(reportText: string): Promise<ReportInterpretationResponse> {
+export async function interpretMedicalReport(reportText: string, language: string = 'hu'): Promise<ReportInterpretationResponse> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   
-  const instruction = `
+  const instructionHu = `
   Ön egy oktatási célú orvosi leletértelmező asszisztens.
   NAGYON FONTOS SZABÁLYOK:
   ❗ nem ad diagnózist
@@ -230,6 +257,20 @@ export async function interpretMedicalReport(reportText: string): Promise<Report
   Fő fókusz: orvosi terminológia elmagyarázása.
   A felhasználó bemásol egy orvosi leletet. Az Ön feladata, hogy közérthetően elmagyarázza a benne szereplő orvosi szakszavakat, anatómiai fogalmakat és kifejezéseket.
   A 'disclaimer' mezőben mindig hangsúlyozza ki a fenti 3 szabályt.
+  Kérlek, MAGYARUL válaszolj.
+  `;
+
+  const instructionEn = `
+  You are an educational medical report interpreter assistant.
+  VERY IMPORTANT RULES:
+  ❗ you do not provide diagnoses
+  ❗ you do not provide treatment advice
+  ❗ this is strictly for educational purposes
+
+  Main focus: explaining medical terminology.
+  The user pastes a medical report. Your task is to explain the medical terms, anatomical concepts, and phrases clearly.
+  In the 'disclaimer' field, always emphasize the 3 rules above.
+  Please answer in ENGLISH.
   `;
 
   try {
@@ -237,7 +278,7 @@ export async function interpretMedicalReport(reportText: string): Promise<Report
       model: "gemini-3-flash-preview",
       contents: [{ role: "user", parts: [{ text: reportText }] }],
       config: {
-        systemInstruction: instruction,
+        systemInstruction: language === 'en' ? instructionEn : instructionHu,
         temperature: 0.2,
         responseMimeType: "application/json",
         responseSchema: {
@@ -269,10 +310,10 @@ export async function interpretMedicalReport(reportText: string): Promise<Report
   }
 }
 
-export async function interpretMedicalReportFromFile(base64Data: string, mimeType: string): Promise<ReportInterpretationResponse> {
+export async function interpretMedicalReportFromFile(base64Data: string, mimeType: string, language: string = 'hu'): Promise<ReportInterpretationResponse> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   
-  const instruction = `
+  const instructionHu = `
   Ön egy oktatási célú orvosi leletértelmező asszisztens.
   NAGYON FONTOS SZABÁLYOK:
   ❗ nem ad diagnózist
@@ -282,6 +323,20 @@ export async function interpretMedicalReportFromFile(base64Data: string, mimeTyp
   Fő fókusz: orvosi terminológia elmagyarázása.
   A felhasználó feltöltött egy orvosi leletet (kép vagy PDF formátumban). Az Ön feladata, hogy közérthetően elmagyarázza a benne szereplő orvosi szakszavakat, anatómiai fogalmakat és kifejezéseket.
   A 'disclaimer' mezőben mindig hangsúlyozza ki a fenti 3 szabályt.
+  Kérlek, MAGYARUL válaszolj.
+  `;
+
+  const instructionEn = `
+  You are an educational medical report interpreter assistant.
+  VERY IMPORTANT RULES:
+  ❗ you do not provide diagnoses
+  ❗ you do not provide treatment advice
+  ❗ this is strictly for educational purposes
+
+  Main focus: explaining medical terminology.
+  The user uploaded a medical report (image or PDF). Your task is to explain the medical terms, anatomical concepts, and phrases clearly.
+  In the 'disclaimer' field, always emphasize the 3 rules above.
+  Please answer in ENGLISH.
   `;
 
   try {
@@ -291,13 +346,13 @@ export async function interpretMedicalReportFromFile(base64Data: string, mimeTyp
         {
           role: "user",
           parts: [
-            { text: "Kérem, értelmezze a mellékelt orvosi leletet." },
+            { text: language === 'en' ? "Please interpret the attached medical report." : "Kérem, értelmezze a mellékelt orvosi leletet." },
             { inlineData: { data: base64Data.split(',')[1], mimeType } }
           ]
         }
       ],
       config: {
-        systemInstruction: instruction,
+        systemInstruction: language === 'en' ? instructionEn : instructionHu,
         temperature: 0.2,
         responseMimeType: "application/json",
         responseSchema: {

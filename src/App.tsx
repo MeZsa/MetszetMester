@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft, AlertTriangle, Download } from 'lucide-react';
+import { Upload, FileText, Info, Loader2, ChevronRight, X, Camera, History, ZoomIn, ZoomOut, Maximize, Move, Anchor, Brain, Trophy, CheckCircle2, XCircle, Sun, Moon, ChevronUp, ChevronDown, ChevronLeft, BookOpen, Play, Microscope, ArrowLeft, AlertTriangle, Download, Search } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import Markdown from 'react-markdown';
+import { translations, Language } from './i18n';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cn } from './lib/utils';
@@ -231,7 +232,37 @@ function LoadingMessage() {
 }
 
 export default function App() {
-  const [view, setView] = useState<'main' | 'clinical' | 'report_interpreter'>('main');
+  const [view, setViewInternal] = useState<'main' | 'clinical' | 'report_interpreter'>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'main' || hash === 'clinical' || hash === 'report_interpreter') {
+        return hash as 'main' | 'clinical' | 'report_interpreter';
+      }
+    }
+    return 'main';
+  });
+
+  const setView = (newView: 'main' | 'clinical' | 'report_interpreter') => {
+    window.location.hash = newView;
+  };
+
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'main' || hash === 'clinical' || hash === 'report_interpreter') {
+        setViewInternal(hash as 'main' | 'clinical' | 'report_interpreter');
+      } else {
+        setViewInternal('main');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    // Beállítjuk a kezdeti hash-t, ha nincs
+    if (!window.location.hash) {
+       window.history.replaceState(null, '', '#main');
+    }
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('metszetmester-theme');
@@ -244,6 +275,8 @@ export default function App() {
     localStorage.setItem('metszetmester-theme', theme);
   }, [theme]);
 
+  const t = translations['hu'];
+
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -251,6 +284,7 @@ export default function App() {
   const [clinicalCauses, setClinicalCauses] = useState<ClinicalCause[]>([]);
   const [hoveredAnnotationIndex, setHoveredAnnotationIndex] = useState<number | null>(null);
   const [selectedAnnotationIndex, setSelectedAnnotationIndex] = useState<number | null>(null);
+  const [structureSearch, setStructureSearch] = useState('');
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFloating, setIsFloating] = useState(false);
@@ -681,11 +715,11 @@ export default function App() {
       theme === 'dark' && "dark"
     )}>
       {/* Theme Toggle Button */}
-      <div className="fixed top-6 right-6 z-[100]">
+      <div className="fixed top-6 right-6 z-[100] flex items-center gap-3">
         <button
           onClick={toggleTheme}
           className="flex items-center gap-2.5 px-4 py-2.5 bg-surface/80 backdrop-blur-md border border-line rounded-full text-primary shadow-lg hover:shadow-primary/5 hover:scale-105 active:scale-95 transition-all group overflow-hidden"
-          title={theme === 'light' ? 'Váltás sötét módra' : 'Váltás világos módra'}
+          title={theme === 'light' ? t.theme.switchToDark : t.theme.switchToLight}
         >
           <div className="relative w-4 h-4 flex items-center justify-center">
             <AnimatePresence mode="wait">
@@ -702,7 +736,7 @@ export default function App() {
             </AnimatePresence>
           </div>
           <span className="text-[9px] font-mono uppercase tracking-[0.15em] font-bold opacity-70 group-hover:opacity-100 transition-opacity">
-            {theme === 'light' ? 'Sötét' : 'Világos'}
+            {theme === 'light' ? t.theme.dark : t.theme.light}
           </span>
         </button>
       </div>
@@ -762,11 +796,11 @@ export default function App() {
                     <div className="p-3 bg-secondary/10 rounded-2xl">
                       <FileText size={32} />
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-serif font-bold text-primary">Leletértelmező</h2>
+                    <h2 className="text-4xl md:text-5xl font-serif font-bold text-primary">{t.interpreter.title}</h2>
                   </div>
                   <div className="h-1 w-24 bg-secondary rounded-full" />
                   <p className="text-xl md:text-2xl font-serif text-primary/80 leading-relaxed italic">
-                    "Oktatási célú leletértelmező modul."
+                    {t.interpreter.subtitle}
                   </p>
                 </div>
                 
@@ -794,7 +828,7 @@ export default function App() {
                       </div>
                       <div className="flex-1">
                         <h4 className="font-bold text-primary">{reportFileName}</h4>
-                        <p className="text-sm text-primary/60">PDF Dokumentum</p>
+                        <p className="text-sm text-primary/60">{t.interpreter.pdfDoc}</p>
                       </div>
                       <button 
                         onClick={() => {
@@ -813,7 +847,7 @@ export default function App() {
                     <textarea
                       value={reportText}
                       onChange={(e) => setReportText(e.target.value)}
-                      placeholder="Másolja be ide a lelet szövegét, vagy töltsön fel egy dokumentumot a lenti 'Kép / PDF feltöltése' gombbal..."
+                      placeholder={t.interpreter.placeholder}
                       className="w-full h-48 p-6 bg-primary/5 border border-primary/10 rounded-3xl resize-none focus:outline-none focus:ring-2 focus:ring-secondary/50 text-primary placeholder:text-primary/30"
                     />
                   )}
@@ -824,7 +858,7 @@ export default function App() {
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-secondary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-secondary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isInterpreting ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
-                      {isInterpreting ? 'Értelmezés folyamatban...' : 'Lelet értelmezése'}
+                      {isInterpreting ? t.interpreter.analyzing : t.interpreter.analyzeText}
                     </button>
                     <button
                       onClick={() => reportFileInputRef.current?.click()}
@@ -832,7 +866,7 @@ export default function App() {
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-surface border-2 border-dashed border-primary/20 text-primary rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-primary/5 hover:border-primary/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Upload size={16} />
-                      Kép / PDF feltöltése
+                      {t.interpreter.uploadDoc}
                     </button>
                   </div>
                 </div>
@@ -1035,8 +1069,8 @@ export default function App() {
                     <Upload size={32} className="text-primary opacity-20 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xl md:text-2xl font-medium text-primary">Húzza ide a metszetet</p>
-                    <p className="text-xs md:text-sm opacity-30 font-mono tracking-widest uppercase">Vagy kattintson a tallózáshoz</p>
+                    <p className="text-xl md:text-2xl font-medium text-primary">{t.upload.dragAndDrop}</p>
+                    <p className="text-xs md:text-sm opacity-30 font-mono tracking-widest uppercase">{t.upload.browseFile}</p>
                   </div>
                 </div>
               </div>
@@ -1073,7 +1107,7 @@ export default function App() {
                     <Brain size={22} className="relative z-10" />
                   </div>
                   <div className="text-left">
-                    <span className="block font-serif text-lg md:text-xl font-bold text-primary relative z-10">Klinikai Gondolkodás</span>
+                    <span className="block font-serif text-lg md:text-xl font-bold text-primary relative z-10">{t.nav.clinicalReasoning}</span>
                     <span className="block text-[10px] font-mono uppercase tracking-widest text-primary/50 mt-1">Esettanulmányok</span>
                   </div>
                 </motion.button>
@@ -1089,7 +1123,7 @@ export default function App() {
                     <FileText size={22} className="relative z-10" />
                   </div>
                   <div className="text-left">
-                    <span className="block font-serif text-lg md:text-xl font-bold text-primary relative z-10">Leletértelmező</span>
+                    <span className="block font-serif text-lg md:text-xl font-bold text-primary relative z-10">{t.nav.reportInterpreter}</span>
                     <span className="block text-[10px] font-mono uppercase tracking-widest text-secondary mt-1">Oktatási Mód</span>
                   </div>
                 </motion.button>
@@ -1448,7 +1482,7 @@ export default function App() {
                           animate={{ opacity: 1 }}
                           className="text-2xl md:text-3xl font-serif italic text-primary"
                         >
-                          A struktúrák elemzése...
+                          {t.upload.analyzing}
                         </motion.p>
                         <div className="flex flex-col gap-2">
                           <LoadingMessage />
@@ -1533,7 +1567,7 @@ export default function App() {
                             </div>
                             <div>
                               <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Morfológia</span>
-                              <h4 className="text-base font-serif font-bold">Azonosított struktúrák</h4>
+                              <h4 className="text-base font-serif font-bold">{t.tabs.structures}</h4>
                             </div>
                           </div>
                           {activeTab === 'structures' && (
@@ -1561,7 +1595,7 @@ export default function App() {
                             </div>
                             <div>
                               <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Oktatás</span>
-                              <h4 className="text-base font-serif font-bold">Szövettan Kvíz</h4>
+                              <h4 className="text-base font-serif font-bold">{t.tabs.quiz}</h4>
                             </div>
                           </div>
                           {activeTab === 'quiz' && (
@@ -1589,7 +1623,7 @@ export default function App() {
                             </div>
                             <div>
                               <span className="block text-[9px] font-mono uppercase tracking-widest opacity-60 mb-0.5">Összefüggések</span>
-                              <h4 className="text-base font-serif font-bold">Klinikai Gondolkodás</h4>
+                              <h4 className="text-base font-serif font-bold">{t.tabs.clinical}</h4>
                             </div>
                           </div>
                           {activeTab === 'clinical' && (
@@ -1613,11 +1647,11 @@ export default function App() {
                             transition={{ duration: 0.4 }}
                             className="p-4 md:p-0 relative overflow-hidden"
                           >
-                            <div className="mb-8 border-b border-line pb-4">
-                              <h3 className="font-serif text-xl font-bold text-primary">Elemzési Jelentés</h3>
-                              <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Histological Analysis</p>
+                            <div className="mb-4 md:mb-8 border-b border-line pb-4">
+                              <h3 className="font-serif text-xl font-bold text-primary">{t.tabs.report}</h3>
+                              <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">{t.tabs.reportSub}</p>
                             </div>
-                            <div id="report-content-to-pdf" className="markdown-body bg-surface p-2 rounded-xl">
+                            <div id="report-content-to-pdf" className="prose prose-slate max-w-none prose-headings:font-serif prose-headings:text-primary prose-a:text-secondary prose-a:no-underline hover:prose-a:underline bg-surface p-6 md:p-10 rounded-2xl md:rounded-[2rem] border border-line shadow-sm overflow-hidden prose-p:text-primary/80 prose-p:leading-relaxed prose-li:text-primary/80 prose-strong:text-primary focus:outline-none">
                               <Markdown
                                 components={{
                                   a: ({ node, ...props }) => {
@@ -1626,7 +1660,7 @@ export default function App() {
                                       return (
                                         <button
                                           onClick={() => focusAnnotation(annotations[index], index)}
-                                          className="text-secondary font-bold hover:underline cursor-pointer inline-block"
+                                          className="text-secondary font-bold cursor-pointer inline-flex items-center bg-secondary/10 px-1.5 rounded-md hover:bg-secondary/20 transition-colors mx-0.5 border border-secondary/20 shadow-sm"
                                         >
                                           {props.children}
                                         </button>
@@ -1649,47 +1683,68 @@ export default function App() {
                             transition={{ duration: 0.4 }}
                             className="space-y-12"
                           >
-                            <div className="mb-8 border-b border-line pb-4">
-                              <h3 className="font-serif text-xl font-bold text-primary">Azonosított struktúrák</h3>
-                              <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Detailed Morphological Identification</p>
+                            <div className="mb-4 md:mb-8 border-b border-line pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                              <div>
+                                <h3 className="font-serif text-xl font-bold text-primary">{t.tabs.structures}</h3>
+                                <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">{t.tabs.structuresSub}</p>
+                              </div>
+                              <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/40" size={16} />
+                                <input 
+                                  type="text" 
+                                  placeholder={t.tabs.searchStructures}
+                                  value={structureSearch}
+                                  onChange={(e) => setStructureSearch(e.target.value)}
+                                  className="w-full sm:w-64 pl-10 pr-4 py-2 rounded-full border border-line bg-surface text-sm focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/50 placeholder:text-primary/30 transition-all text-primary"
+                                />
+                              </div>
                             </div>
 
                             <div className="w-full">
                               {/* List of Descriptions */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {annotations.map((ann, idx) => (
-                                  <motion.div
-                                    key={idx}
-                                    onMouseEnter={() => setHoveredAnnotationIndex(idx)}
-                                    onMouseLeave={() => setHoveredAnnotationIndex(null)}
-                                    onClick={() => focusAnnotation(ann, idx)}
-                                    className={cn(
-                                      "p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
-                                      selectedAnnotationIndex === idx 
-                                        ? "bg-secondary/5 border-secondary/30 shadow-md translate-y-[-4px]" 
-                                        : "bg-surface border-line hover:border-primary/20"
-                                    )}
-                                  >
-                                    <div className="flex flex-col gap-2">
-                                      <div className="flex items-center justify-between">
-                                        <span className={cn(
-                                          "text-xl font-serif font-bold transition-colors",
-                                          selectedAnnotationIndex === idx ? "text-secondary" : "text-primary"
-                                        )}>
-                                          {ann.label}
-                                        </span>
-                                        {selectedAnnotationIndex === idx && (
-                                          <div className="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-mono uppercase tracking-widest rounded-full">
-                                            Fókuszban
-                                          </div>
-                                        )}
+                                {annotations.filter(ann => ann.label.toLowerCase().includes(structureSearch.toLowerCase()) || ann.description.toLowerCase().includes(structureSearch.toLowerCase())).map((ann) => {
+                                  // Find the original index for focusAnnotation to work correctly
+                                  const originalIndex = annotations.findIndex(a => a === ann);
+                                  return (
+                                    <motion.div
+                                      key={originalIndex}
+                                      onMouseEnter={() => setHoveredAnnotationIndex(originalIndex)}
+                                      onMouseLeave={() => setHoveredAnnotationIndex(null)}
+                                      onClick={() => focusAnnotation(ann, originalIndex)}
+                                      className={cn(
+                                        "p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden",
+                                        selectedAnnotationIndex === originalIndex 
+                                          ? "bg-secondary/5 border-secondary/30 shadow-md translate-y-[-4px]" 
+                                          : "bg-surface border-line hover:border-primary/20"
+                                      )}
+                                    >
+                                      <div className="flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                          <span className={cn(
+                                            "text-xl font-serif font-bold transition-colors",
+                                            selectedAnnotationIndex === originalIndex ? "text-secondary" : "text-primary"
+                                          )}>
+                                            {ann.label}
+                                          </span>
+                                          {selectedAnnotationIndex === originalIndex && (
+                                            <div className="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-mono uppercase tracking-widest rounded-full">
+                                              Fókuszban
+                                            </div>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-primary/60 leading-relaxed group-hover:text-primary/80 transition-colors">
+                                          {ann.description}
+                                        </p>
                                       </div>
-                                      <p className="text-sm text-primary/60 leading-relaxed group-hover:text-primary/80 transition-colors">
-                                        {ann.description}
-                                      </p>
-                                    </div>
-                                  </motion.div>
-                                ))}
+                                    </motion.div>
+                                  );
+                                })}
+                                {annotations.filter(ann => ann.label.toLowerCase().includes(structureSearch.toLowerCase()) || ann.description.toLowerCase().includes(structureSearch.toLowerCase())).length === 0 && (
+                                  <div className="col-span-1 md:col-span-2 py-12 text-center text-primary/40 font-serif italic">
+                                    {t.tabs.noResults}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </motion.div>
@@ -1710,7 +1765,7 @@ export default function App() {
                             {isGeneratingQuiz ? (
                               <div className="flex flex-col items-center justify-center py-20 gap-6 text-center">
                                 <Loader2 className="animate-spin text-secondary" size={48} />
-                                <p className="text-xl font-serif italic text-primary">Kvíz kérdések generálása...</p>
+                                <p className="text-xl font-serif italic text-primary">{t.quiz.generating}</p>
                               </div>
                             ) : quizFinished ? (
                               <div className="p-8 md:p-12 bg-surface border border-line rounded-[3rem] text-center space-y-8 shadow-sm">
@@ -1718,28 +1773,32 @@ export default function App() {
                                   <Trophy size={48} />
                                 </div>
                                 <div className="space-y-2">
-                                  <h3 className="text-3xl font-serif font-bold text-primary">Kvíz Befejezve!</h3>
-                                  <p className="text-lg text-primary/60">Gratulálunk a teljesítéshez.</p>
+                                  <h3 className="text-3xl font-serif font-bold text-primary">{t.quiz.finished}</h3>
+                                  <p className="text-lg text-primary/60">{t.quiz.congrats}</p>
                                 </div>
                                 <div className="text-6xl font-serif font-bold text-secondary">
                                   {quizScore} / {quizQuestions.length}
                                 </div>
                                 <p className="text-sm text-primary/40 max-w-md mx-auto">
                                   {quizScore === quizQuestions.length 
-                                    ? "Tökéletes válaszok! Ön kiválóan ismeri ezt a szövettani metszetet." 
-                                    : "Szép munka! Folytassa a gyakorlást a még mélyebb tudásért."}
+                                    ? t.quiz.perfect 
+                                    : quizScore >= quizQuestions.length / 2 
+                                      ? t.quiz.good 
+                                      : t.quiz.needsWork}
                                 </p>
                                 <button 
                                   onClick={startQuiz}
                                   className="px-8 py-4 bg-primary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/20"
                                 >
-                                  Új kvíz indítása
+                                  {t.quiz.generate}
                                 </button>
                               </div>
                             ) : quizQuestions.length > 0 ? (
                               <div className="space-y-8">
                                 <div className="flex items-center justify-between px-4">
-                                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary/40">Kérdés {currentQuestionIndex + 1} / {quizQuestions.length}</span>
+                                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary/40">
+                                    Kérdés {currentQuestionIndex + 1} / {quizQuestions.length}
+                                  </span>
                                   <div className="h-1.5 w-32 bg-line rounded-full overflow-hidden">
                                     <motion.div 
                                       className="h-full bg-secondary"
@@ -1837,8 +1896,8 @@ export default function App() {
                                             </motion.div>
                                             <span className="font-serif text-lg font-bold">
                                               {userAnswers[currentQuestionIndex] === quizQuestions[currentQuestionIndex].correctAnswerIndex 
-                                                ? "Kiváló! Helyes válasz." 
-                                                : "Sajnos ez nem talált."}
+                                                ? t.quiz.correct 
+                                                : t.quiz.incorrect}
                                             </span>
                                           </motion.div>
 
@@ -1865,7 +1924,7 @@ export default function App() {
                                             onClick={nextQuestion}
                                             className="flex items-center gap-2 px-8 py-4 bg-secondary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-secondary/90 transition-all shadow-lg hover:shadow-secondary/20"
                                           >
-                                            {currentQuestionIndex < quizQuestions.length - 1 ? 'Következő kérdés' : 'Eredmények megtekintése'}
+                                            {currentQuestionIndex < quizQuestions.length - 1 ? t.quiz.nextQuestion : t.quiz.finishQuiz}
                                             <ChevronRight size={16} />
                                           </button>
                                         </div>
@@ -1882,7 +1941,7 @@ export default function App() {
                                   onClick={startQuiz}
                                   className="px-8 py-4 bg-primary text-white rounded-full text-xs font-mono uppercase tracking-widest font-bold hover:bg-primary/90 transition-all"
                                 >
-                                  Kvíz Generálása
+                                  {t.quiz.generate}
                                 </button>
                               </div>
                             )}
@@ -1897,7 +1956,7 @@ export default function App() {
                             className="space-y-8"
                           >
                             <div className="mb-8 border-b border-line pb-4">
-                              <h3 className="font-serif text-xl font-bold text-primary">Klinikai Gondolkodás</h3>
+                              <h3 className="font-serif text-xl font-bold text-primary">{t.nav.clinicalReasoning}</h3>
                               <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mt-1">Clinical Reasoning & Differential Diagnosis</p>
                             </div>
 
@@ -1946,7 +2005,7 @@ export default function App() {
                             ) : (
                               <div className="flex flex-col items-center justify-center py-20 gap-6 text-center">
                                 <FileText className="text-primary/10" size={64} />
-                                <p className="text-lg font-serif italic text-primary/40">Nincsenek elérhető klinikai összefüggések ehhez a metszethez.</p>
+                                <p className="text-lg font-serif italic text-primary/40">{t.tabs.noClinical}</p>
                               </div>
                             )}
                           </motion.div>
