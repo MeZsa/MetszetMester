@@ -1226,10 +1226,10 @@ export default function App() {
               >
                 <div className="absolute left-1/2 -top-8 -translate-x-1/2 w-12 h-px bg-primary/20" />
                 <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed">
-                  Mékli Zsuzsanna vagyok, egészségügyi alapvégzettséggel és informatikai ismeretekkel.
+                  Mékli Zsuzsanna vagyok, egészségügyi végzettséggel és informatikai ismeretekkel.
                 </p>
                 <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed">
-                  Az oktatóprogramot azért hoztam létre, mert a szövettani metszetek területén kevés olyan tananyag érhető el, amely segítené az összefüggések felismerését és a szemléletalapú tanulást. Mondhatnánk azt is, hogy képes szövettani gyakorlat.
+                  Ezt az oktatóprogramot azért hoztam létre, mert a szövettani metszetek tanulása során gyakran hiányzik az a fajta szemléletes, összefüggéseket bemutató tananyag, amely valóban segíti a megértést. Szerettem volna egy olyan eszközt készíteni, amely a képi felismerésre épít, és a gyakorlatias tanulást támogatja – mintha egy modern, digitális szövettani gyakorlaton vennénk részt.
                 </p>
                 <p className="text-sm md:text-base font-serif text-primary/80 leading-relaxed italic">
                   A célom nem a diagnosztizálás, hanem a szövettani struktúrák készségszintű felismerésének fejlesztése.
@@ -2231,7 +2231,12 @@ export default function App() {
       <footer className="py-12 border-t border-line/10 bg-surface/30 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-[11px] md:text-xs font-serif text-primary/70 tracking-widest uppercase leading-relaxed max-w-3xl mx-auto">
-            © 2026 <button onClick={() => setView('main')} className="hover:text-secondary hover:underline transition-colors focus:outline-none">Metszetmester.hu</button> – Szövettani Oktató Program
+            © 2026 <button onClick={() => {
+              setView('main');
+              setHasAcceptedTerms(false);
+              setTermsCheckboxChecked(false);
+              localStorage.removeItem('metszetmester-terms-accepted');
+            }} className="hover:text-secondary hover:underline transition-colors focus:outline-none">Metszetmester.hu</button> – Szövettani Oktató Program
             <span className="block mt-2 font-bold text-primary/80">
               Az oldal kizárólag oktatási célokat szolgál. Az itt megjelenő tartalmak és AI‑alapú elemzések nem minősülnek diagnózisnak, és nem helyettesítik a szakorvosi véleményt.
             </span>
