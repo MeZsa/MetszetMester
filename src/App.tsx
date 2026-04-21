@@ -729,40 +729,41 @@ export default function App() {
       theme === 'dark' && "dark"
     )}>
       {!hasAcceptedTerms && view !== 'terms' && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-bg/90 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-bg/90 backdrop-blur-md">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-full max-w-xl bg-surface border border-line shadow-2xl rounded-3xl p-8 relative overflow-hidden"
+            className="w-full max-w-lg bg-surface border border-line/50 shadow-2xl rounded-3xl p-8 relative overflow-hidden"
           >
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-secondary" />
+            {/* Top accent bar */}
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-secondary" />
             
-            <div className="flex justify-center mb-8">
-               <ScientificLogo size={80} className="text-primary" />
+            <div className="flex justify-center mb-6 mt-2">
+               <ScientificLogo size={64} className="text-primary" />
             </div>
             
-            <h2 className="text-2xl font-serif font-bold text-center text-primary mb-6">
+            <h2 className="text-2xl font-serif font-bold text-center text-primary mb-4">
               Üdvözli a MetszetMester!
             </h2>
             
-            <p className="text-primary/70 mb-8 leading-relaxed text-center">
+            <p className="text-primary/70 mb-8 text-sm leading-relaxed text-center">
               A MetszetMester egy mesterséges intelligencián alapuló szövettani oktatóprogram, amely kizárólag oktatási és szemléltetési célokat szolgál. A rendszer nem minősül orvostechnikai eszköznek, nem alkalmas diagnózis felállítására, és nem helyettesíti a szakképzett patológus vagy más egészségügyi szakember szakvéleményét.
             </p>
             
-            <label className="flex items-start gap-4 p-5 rounded-2xl border border-line bg-surface/50 cursor-pointer hover:bg-surface transition-colors mb-8 group">
-              <div className="relative flex items-center justify-center mt-0.5">
+            <label className="flex items-start gap-4 p-4 rounded-xl border border-line/60 bg-bg/50 cursor-pointer hover:bg-line/10 transition-colors mb-8 group">
+              <div className="relative flex items-center justify-center mt-0.5 shrink-0">
                 <input 
                   type="checkbox" 
                   checked={termsCheckboxChecked}
                   onChange={(e) => setTermsCheckboxChecked(e.target.checked)}
-                  className="w-5 h-5 appearance-none rounded border-2 border-primary/30 checked:bg-primary checked:border-primary transition-all peer"
+                  className="w-5 h-5 appearance-none rounded border-2 border-primary/30 checked:bg-primary checked:border-primary transition-all peer cursor-pointer"
                 />
-                <svg viewBox="0 0 14 14" fill="none" className="absolute w-3 h-3 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">
+                <svg viewBox="0 0 14 14" fill="none" className="absolute w-3 h-3 text-surface pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">
                   <path d="M3 8L6 11L11 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <div className="text-sm text-primary/80 leading-relaxed font-medium">
-                Elolvastam és elfogadom a <button onClick={(e) => { e.preventDefault(); setView('terms'); }} className="text-secondary font-bold hover:underline">felhasználási feltételeket és jogi nyilatkozatot</button>.
+              <div className="text-sm text-primary/80 leading-relaxed">
+                Elolvastam és elfogadom a <button onClick={(e) => { e.preventDefault(); setView('terms'); }} className="text-primary font-bold hover:text-secondary hover:underline transition-colors focus:outline-none">felhasználási feltételeket és jogi nyilatkozatot</button>.
               </div>
             </label>
             
@@ -770,13 +771,13 @@ export default function App() {
               onClick={handleAcceptTerms}
               disabled={!termsCheckboxChecked}
               className={cn(
-                "w-full py-4 rounded-xl font-mono uppercase tracking-widest text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2",
+                "w-full py-3.5 rounded-xl font-medium tracking-wide text-sm transition-all duration-300 flex items-center justify-center gap-2",
                 termsCheckboxChecked 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5" 
+                  ? "bg-primary text-surface hover:bg-primary/90 shadow-md" 
                   : "bg-line/50 text-primary/40 cursor-not-allowed"
               )}
             >
-              Elfogadom és Tovább
+              Belépés az oktatóprogramba
             </button>
           </motion.div>
         </div>
