@@ -139,15 +139,17 @@ export async function analyzeHistologyImage(base64Image: string, mimeType: strin
       }
     });
 
-    const result = JSON.parse(response.text || "{}");
+    const textResponse = response.text || "{}";
+    const cleanedText = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleanedText);
     return {
       report: result.report || "Sajnos nem sikerült részletes jelentést készíteni.",
       annotations: result.annotations || [],
       clinicalCauses: result.clinicalCauses || []
     };
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw new Error("Hiba történt az elemzés során. Kérjük, próbálja újra később.");
+  } catch (error: any) {
+    console.error("Gemini API Error:", error, error.message);
+    throw new Error(`Hiba történt az elemzés során: ${error.message || 'Ismeretlen hiba'}`);
   }
 }
 
@@ -234,13 +236,15 @@ export async function generateHistologyQuiz(base64Image: string, mimeType: strin
       }
     });
 
-    const result = JSON.parse(response.text || "{}");
+    const textResponse = response.text || "{}";
+    const cleanedText = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleanedText);
     return {
       questions: result.questions || []
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Quiz Error:", error);
-    throw new Error("Hiba történt a kvíz generálása során.");
+    throw new Error(`Hiba történt a kvíz generálása során: ${error.message || 'Ismeretlen hiba'}`);
   }
 }
 
@@ -303,10 +307,12 @@ export async function interpretMedicalReport(reportText: string, language: strin
       }
     });
 
-    return JSON.parse(response.text || "{}");
-  } catch (error) {
+    const textResponse1 = response.text || "{}";
+    const cleanedText1 = textResponse1.replace(/```json/gi, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanedText1);
+  } catch (error: any) {
     console.error("Gemini Report Interpreter Error:", error);
-    throw new Error("Hiba történt a lelet értelmezése során.");
+    throw new Error(`Hiba történt a lelet értelmezése során: ${error.message || 'Ismeretlen hiba'}`);
   }
 }
 
@@ -377,9 +383,11 @@ export async function interpretMedicalReportFromFile(base64Data: string, mimeTyp
       }
     });
 
-    return JSON.parse(response.text || "{}");
-  } catch (error) {
+    const textResponse2 = response.text || "{}";
+    const cleanedText2 = textResponse2.replace(/```json/gi, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanedText2);
+  } catch (error: any) {
     console.error("Gemini Report Interpreter Error:", error);
-    throw new Error("Hiba történt a lelet értelmezése során.");
+    throw new Error(`Hiba történt a lelet értelmezése során: ${error.message || 'Ismeretlen hiba'}`);
   }
 }

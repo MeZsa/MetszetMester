@@ -232,25 +232,25 @@ function LoadingMessage() {
 }
 
 export default function App() {
-  const [view, setViewInternal] = useState<'main' | 'clinical' | 'report_interpreter'>(() => {
+  const [view, setViewInternal] = useState<'main' | 'clinical' | 'report_interpreter' | 'terms'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
-      if (hash === 'main' || hash === 'clinical' || hash === 'report_interpreter') {
-        return hash as 'main' | 'clinical' | 'report_interpreter';
+      if (hash === 'main' || hash === 'clinical' || hash === 'report_interpreter' || hash === 'terms') {
+        return hash as 'main' | 'clinical' | 'report_interpreter' | 'terms';
       }
     }
     return 'main';
   });
 
-  const setView = (newView: 'main' | 'clinical' | 'report_interpreter') => {
+  const setView = (newView: 'main' | 'clinical' | 'report_interpreter' | 'terms') => {
     window.location.hash = newView;
   };
 
   React.useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (hash === 'main' || hash === 'clinical' || hash === 'report_interpreter') {
-        setViewInternal(hash as 'main' | 'clinical' | 'report_interpreter');
+      if (hash === 'main' || hash === 'clinical' || hash === 'report_interpreter' || hash === 'terms') {
+        setViewInternal(hash as 'main' | 'clinical' | 'report_interpreter' | 'terms');
       } else {
         setViewInternal('main');
       }
@@ -271,9 +271,23 @@ export default function App() {
     return 'light';
   });
 
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('metszetmester-terms-accepted') === 'true';
+    }
+    return false;
+  });
+
+  const [termsCheckboxChecked, setTermsCheckboxChecked] = useState(false);
+
   React.useEffect(() => {
     localStorage.setItem('metszetmester-theme', theme);
   }, [theme]);
+
+  const handleAcceptTerms = () => {
+    localStorage.setItem('metszetmester-terms-accepted', 'true');
+    setHasAcceptedTerms(true);
+  };
 
   const t = translations['hu'];
 
@@ -714,6 +728,60 @@ export default function App() {
       "min-h-screen bg-bg text-ink overflow-x-hidden selection:bg-primary/10 selection:text-primary flex flex-col transition-colors duration-500",
       theme === 'dark' && "dark"
     )}>
+      {!hasAcceptedTerms && view !== 'terms' && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-bg/90 backdrop-blur-xl">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-xl bg-surface border border-line shadow-2xl rounded-3xl p-8 relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-secondary" />
+            
+            <div className="flex justify-center mb-8">
+               <ScientificLogo size={80} className="text-primary" />
+            </div>
+            
+            <h2 className="text-2xl font-serif font-bold text-center text-primary mb-6">
+              Üdvözli a MetszetMester!
+            </h2>
+            
+            <p className="text-primary/70 mb-8 leading-relaxed text-center">
+              A MetszetMester egy mesterséges intelligencián alapuló szövettani oktatóprogram, amely kizárólag oktatási és szemléltetési célokat szolgál. A rendszer nem minősül orvostechnikai eszköznek, nem alkalmas diagnózis felállítására, és nem helyettesíti a szakképzett patológus vagy más egészségügyi szakember szakvéleményét.
+            </p>
+            
+            <label className="flex items-start gap-4 p-5 rounded-2xl border border-line bg-surface/50 cursor-pointer hover:bg-surface transition-colors mb-8 group">
+              <div className="relative flex items-center justify-center mt-0.5">
+                <input 
+                  type="checkbox" 
+                  checked={termsCheckboxChecked}
+                  onChange={(e) => setTermsCheckboxChecked(e.target.checked)}
+                  className="w-5 h-5 appearance-none rounded border-2 border-primary/30 checked:bg-primary checked:border-primary transition-all peer"
+                />
+                <svg viewBox="0 0 14 14" fill="none" className="absolute w-3 h-3 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">
+                  <path d="M3 8L6 11L11 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="text-sm text-primary/80 leading-relaxed font-medium">
+                Elolvastam és elfogadom a <button onClick={(e) => { e.preventDefault(); setView('terms'); }} className="text-secondary font-bold hover:underline">felhasználási feltételeket és jogi nyilatkozatot</button>.
+              </div>
+            </label>
+            
+            <button 
+              onClick={handleAcceptTerms}
+              disabled={!termsCheckboxChecked}
+              className={cn(
+                "w-full py-4 rounded-xl font-mono uppercase tracking-widest text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2",
+                termsCheckboxChecked 
+                  ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5" 
+                  : "bg-line/50 text-primary/40 cursor-not-allowed"
+              )}
+            >
+              Elfogadom és Tovább
+            </button>
+          </motion.div>
+        </div>
+      )}
+
       {/* Theme Toggle Button */}
       <div className="fixed top-6 right-6 z-[100] flex items-center gap-3">
         <button
@@ -1002,6 +1070,79 @@ export default function App() {
                 </div>
               </div>
             </motion.div>
+          ) : view === 'terms' ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full max-w-4xl mx-auto"
+            >
+              <div className="bg-surface/50 backdrop-blur-xl rounded-[3rem] p-8 md:p-12 border border-line/20 shadow-2xl">
+                <button 
+                  onClick={() => setView('main')}
+                  className="mb-8 flex items-center gap-2 text-primary hover:text-secondary transition-colors text-sm font-mono uppercase tracking-widest font-bold"
+                >
+                  <ChevronLeft size={16} />
+                  Vissza a főoldalra
+                </button>
+                <h1 className="font-serif text-4xl md:text-5xl font-medium text-primary mb-12">
+                  Felhasználási feltételek és Jogi nyilatkozat
+                </h1>
+                
+                <div className="space-y-8 text-primary/80 leading-relaxed font-serif text-lg">
+                  <section>
+                    <h2 className="text-2xl font-bold text-primary mb-4">1. Oktatási Célú Felhasználás</h2>
+                    <p>
+                      A MetszetMester ("Alkalmazás") egy mesterséges intelligencia (AI) alapú, szövettani oktatást segítő demonstrációs eszköz. 
+                      Az Alkalmazás által generált tartalmak, elemzések és vizuális jelölések <strong>kizárólag oktatási és tájékoztatási célokat szolgálnak</strong>.
+                    </p>
+                  </section>
+                  
+                  <section>
+                    <h2 className="text-2xl font-bold text-primary mb-4">2. Klinikai és Diagnosztikai Felhasználás Kizárása</h2>
+                    <p>
+                      Az Alkalmazás <strong>NEM minősül orvostechnikai eszköznek</strong>, és semmilyen körülmények között sem használható orvosi diagnózis felállítására, 
+                      kezelési terv készítésére vagy bármely orvosi/klinikai döntéshozatalhoz. Az AI modell által adott információk pontatlanok vagy hibásak lehetnek. 
+                      Minden orvosi kérdéssel vagy a szövettani leletek végleges kiértékelésével forduljon szakképzett szakorvoshoz (patológushoz).
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-primary mb-4">3. Szerzői jogok és Szellemi tulajdon</h2>
+                    <p className="mb-4">
+                      Az egészségügyi szövettani oktatóprogram koncepciója, felépítése és tartalma a szerző kizárólagos szellemi tulajdona.
+                    </p>
+                    <p className="mb-4">
+                      A szövettani minták elemzését a felhasználók végzik, azonban ez nem biztosít számukra semmilyen tulajdonjogot vagy felhasználási jogot a program egészére, illetve annak bármely elemére vonatkozóan.
+                    </p>
+                    <p className="mb-4">
+                      A program bármely részének másolása, terjesztése vagy módosítása kizárólag a szerző előzetes, írásbeli engedélyével lehetséges.
+                    </p>
+                    <p>
+                      Az oktatóprogram oktatási célokat szolgál, nem minősül orvosi diagnosztikai eszköznek.
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-primary mb-4">4. Adatkezelés és Titkosítás</h2>
+                    <p>
+                      Kérjük, <strong>ne töltsön fel személyes egészségügyi adatokat (PHI), betegneveket vagy egyedi azonosítókat</strong> tartalmazó képeket vagy leleteket az 
+                      Alkalmazásba. A feltöltött adatokat nem tároljuk szervereinken, azok elemzés után nem kerülnek megőrzésre, de a harmadik fél (Google AI) API 
+                      szerverein átmenetileg feldolgozásra kerülnek.
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-primary mb-4">5. Felelősségkizárás</h2>
+                    <p>
+                      Az oldal üzemeltetője, illetve a modell fejlesztői semmilyen felelősséget nem vállalnak az Alkalmazás használatából eredő 
+                      közvetlen vagy közvetett károkért, az itt található információk helyességéért, teljességéért vagy aktualitásáért. 
+                      A feltöltött képek elemzését egy felhőalapú mesterséges intelligencia (Gemini) végzi, az eredményeket a felhasználó saját felelősségére értelmezi.
+                    </p>
+                  </section>
+                </div>
+              </div>
+            </motion.div>
           ) : !image ? (
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
@@ -1200,6 +1341,20 @@ export default function App() {
                       isFloating ? "rounded-[2.3rem]" : "rounded-[3rem] md:rounded-[4rem]"
                     )}
                   >
+                    {/* Floating Toggle Button (Top Right) */}
+                    <button
+                      onClick={() => setIsFloating(!isFloating)}
+                      className={cn(
+                        "absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] font-bold transition-all shadow-md backdrop-blur-md border",
+                        isFloating 
+                          ? "bg-secondary text-white border-secondary/50 shadow-secondary/20 hover:bg-secondary/90" 
+                          : "bg-surface/80 text-primary border-line shadow-primary/5 hover:bg-surface hover:scale-105"
+                      )}
+                    >
+                      {isFloating ? <Anchor size={14} className="opacity-80" /> : <Move size={14} className="opacity-80" />}
+                      <span>{isFloating ? "Dokkolás" : "Lebegő Nézet"}</span>
+                    </button>
+
                     <motion.div 
                       className="w-full h-full relative cursor-grab active:cursor-grabbing"
                       animate={{ 
@@ -1240,7 +1395,7 @@ export default function App() {
                                 opacity: (hoveredAnnotationIndex === null && selectedAnnotationIndex === null) 
                                   ? 0.6 
                                   : (hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? 1 : 0.2),
-                                scale: hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? 1.05 : 1
+                                scale: hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? 1.02 : 1
                               }}
                               exit={{ opacity: 0 }}
                               className="pointer-events-auto cursor-pointer"
@@ -1256,22 +1411,52 @@ export default function App() {
                                 }
                               }}
                             >
+                              {/* Pulsating backdrop for highlighted state */}
+                              {(hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx) && (
+                                <motion.rect
+                                  x={ann.xmin}
+                                  y={ann.ymin}
+                                  width={ann.xmax - ann.xmin}
+                                  height={ann.ymax - ann.ymin}
+                                  fill="transparent"
+                                  stroke="currentColor"
+                                  className="text-secondary"
+                                  rx={4 / zoom}
+                                  initial={{ opacity: 0, strokeWidth: 4 / zoom }}
+                                  animate={{
+                                    opacity: [0.4, 0.1, 0.4],
+                                    strokeWidth: [4 / zoom, 12 / zoom, 4 / zoom]
+                                  }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                  }}
+                                />
+                              )}
+                              
                               <motion.rect
                                 x={ann.xmin}
                                 y={ann.ymin}
                                 width={ann.xmax - ann.xmin}
                                 height={ann.ymax - ann.ymin}
+                                rx={4 / zoom}
                                 fill={hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? "rgba(59, 110, 165, 0.15)" : "transparent"}
                                 stroke="currentColor"
-                                strokeWidth={hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? 4 / zoom : 1.5 / zoom}
+                                strokeWidth={hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? 3 / zoom : 1.5 / zoom}
                                 className={cn(
                                   "transition-all duration-300",
                                   hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? "text-secondary" : "text-primary/40"
                                 )}
                                 animate={hoveredAnnotationIndex === idx || selectedAnnotationIndex === idx ? {
-                                  strokeWidth: [4 / zoom, 8 / zoom, 4 / zoom],
-                                  opacity: [1, 0.6, 1],
-                                } : {}}
+                                  filter: [
+                                    "drop-shadow(0 0 2px rgba(59, 110, 165, 0.4))",
+                                    "drop-shadow(0 0 8px rgba(59, 110, 165, 0.8))",
+                                    "drop-shadow(0 0 2px rgba(59, 110, 165, 0.4))"
+                                  ]
+                                } : {
+                                  filter: "drop-shadow(0 0 0px rgba(59, 110, 165, 0))"
+                                }}
                                 transition={{
                                   duration: 2,
                                   repeat: Infinity,
@@ -1285,41 +1470,74 @@ export default function App() {
 
                       {/* Floating Detailed Tooltip */}
                       <AnimatePresence>
-                        {hoveredAnnotationIndex !== null && annotations[hoveredAnnotationIndex] && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                            className="absolute z-50 pointer-events-none"
-                            style={{
-                              left: `${(annotations[hoveredAnnotationIndex].xmin + annotations[hoveredAnnotationIndex].xmax) / 20}%`,
-                              top: `${annotations[hoveredAnnotationIndex].ymin / 10}%`,
-                              transform: 'translate(-50%, -110%)',
-                              scale: 1 / zoom // Keep tooltip size consistent regardless of zoom
-                            }}
-                          >
-                            <div className="bg-surface/95 backdrop-blur-md border border-primary/20 p-5 rounded-[2rem] shadow-2xl w-64 md:w-80">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                                  <h4 className="text-sm font-serif font-bold text-primary">
-                                    {annotations[hoveredAnnotationIndex].label}
-                                  </h4>
+                        {hoveredAnnotationIndex !== null && annotations[hoveredAnnotationIndex] && (() => {
+                          const ann = annotations[hoveredAnnotationIndex];
+                          const xCenter = (ann.xmin + ann.xmax) / 20;
+                          const yTop = ann.ymin / 10;
+                          const yBottom = ann.ymax / 10;
+                          
+                          const isNearTop = yTop < 25;
+                          const isNearLeft = xCenter < 25;
+                          const isNearRight = xCenter > 75;
+                          
+                          return (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.9, y: isNearTop ? -10 : 10 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.9, y: isNearTop ? -10 : 10 }}
+                              className="absolute z-50 pointer-events-none flex flex-col"
+                              style={{
+                                left: isNearLeft ? `${ann.xmin / 10}%` : isNearRight ? `${ann.xmax / 10}%` : `${xCenter}%`,
+                                top: isNearTop ? `${yBottom}%` : `${yTop}%`,
+                                transform: `translate(${isNearLeft ? '0' : isNearRight ? '-100%' : '-50%'}, ${isNearTop ? '10px' : 'calc(-100% - 10px)'})`,
+                                scale: 1 / zoom // Keep tooltip size consistent regardless of zoom
+                              }}
+                            >
+                              {/* If near top, arrow should be on top pointing UP */}
+                              {isNearTop && (
+                                <div 
+                                  className="w-4 h-4 bg-surface border-l border-t border-primary/20 rotate-45 mb-[-8px] shadow-sm z-10" 
+                                  style={{ 
+                                     alignSelf: isNearLeft ? 'flex-start' : isNearRight ? 'flex-end' : 'center',
+                                     marginLeft: isNearLeft ? '24px' : '0',
+                                     marginRight: isNearRight ? '24px' : '0'
+                                  }} 
+                                />
+                              )}
+                              
+                              <div className="bg-surface/95 backdrop-blur-md border border-primary/20 p-5 rounded-[2rem] shadow-2xl w-64 md:w-80 relative z-20">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                                    <h4 className="text-sm font-serif font-bold text-primary">
+                                      {ann.label}
+                                    </h4>
+                                  </div>
+                                  <span className="text-[10px] font-mono font-bold text-secondary">#{hoveredAnnotationIndex + 1}</span>
                                 </div>
-                                <span className="text-[10px] font-mono font-bold text-secondary">#{hoveredAnnotationIndex + 1}</span>
+                                <p className="text-xs leading-relaxed text-primary/70 font-medium">
+                                  {ann.description}
+                                </p>
+                                <div className="mt-4 pt-3 border-t border-line/30 flex items-center gap-2">
+                                  <Info size={12} className="text-secondary" />
+                                  <span className="text-[9px] font-mono uppercase tracking-widest opacity-40">Szövettani Morfológia</span>
+                                </div>
                               </div>
-                              <p className="text-xs leading-relaxed text-primary/70 font-medium">
-                                {annotations[hoveredAnnotationIndex].description}
-                              </p>
-                              <div className="mt-4 pt-3 border-t border-line/30 flex items-center gap-2">
-                                <Info size={12} className="text-secondary" />
-                                <span className="text-[9px] font-mono uppercase tracking-widest opacity-40">Szövettani Morfológia</span>
-                              </div>
-                            </div>
-                            {/* Tooltip Arrow */}
-                            <div className="w-4 h-4 bg-surface border-r border-b border-primary/20 rotate-45 mx-auto -mt-2 shadow-sm" />
-                          </motion.div>
-                        )}
+
+                              {/* If not near top, arrow should be on bottom pointing DOWN */}
+                              {!isNearTop && (
+                                <div 
+                                  className="w-4 h-4 bg-surface border-r border-b border-primary/20 rotate-45 mt-[-8px] shadow-sm z-10" 
+                                  style={{ 
+                                     alignSelf: isNearLeft ? 'flex-start' : isNearRight ? 'flex-end' : 'center',
+                                     marginLeft: isNearLeft ? '24px' : '0',
+                                     marginRight: isNearRight ? '24px' : '0'
+                                  }}
+                                />
+                              )}
+                            </motion.div>
+                          );
+                        })()}
                       </AnimatePresence>
                     </motion.div>
                     
@@ -1387,17 +1605,6 @@ export default function App() {
                           title="Alaphelyzet"
                         >
                           <Maximize size={16} />
-                        </button>
-                        <div className="h-4 w-px bg-line mx-1" />
-                        <button 
-                          onClick={() => setIsFloating(!isFloating)}
-                          className={cn(
-                            "p-2 rounded-full transition-all duration-300",
-                            isFloating ? "bg-primary text-white" : "hover:bg-primary/5 text-primary"
-                          )}
-                          title={isFloating ? "Dokkolás" : "Lebegő mód"}
-                        >
-                          {isFloating ? <Anchor size={16} /> : <Move size={16} />}
                         </button>
                       </div>
                     </div>
@@ -2023,9 +2230,17 @@ export default function App() {
       <footer className="py-12 border-t border-line/10 bg-surface/30 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-[11px] md:text-xs font-serif text-primary/70 tracking-widest uppercase leading-relaxed max-w-3xl mx-auto">
-            © 2026 Metszetmester.hu – Szövettani Oktató Program
+            © 2026 <button onClick={() => setView('main')} className="hover:text-secondary hover:underline transition-colors focus:outline-none">Metszetmester.hu</button> – Szövettani Oktató Program
             <span className="block mt-2 font-bold text-primary/80">
               Az oldal kizárólag oktatási célokat szolgál. Az itt megjelenő tartalmak és AI‑alapú elemzések nem minősülnek diagnózisnak, és nem helyettesítik a szakorvosi véleményt.
+            </span>
+            <span className="block mt-4">
+              <button 
+                onClick={() => setView('terms')} 
+                className="hover:text-secondary hover:underline transition-colors focus:outline-none"
+              >
+                Felhasználási feltételek / Jogi nyilatkozat
+              </button>
             </span>
           </p>
         </div>
